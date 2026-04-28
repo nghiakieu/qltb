@@ -1,0 +1,14 @@
+# FastAPI & Server
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+
+# Validation & Settings
+pydantic
+pydantic-settings
+python-dotenv
+
+# CORS & Utils
+python-multipart
