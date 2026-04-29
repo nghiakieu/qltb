@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo, useCallback, Suspense, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
 import { useSearchParams, useRouter } from 'next/navigation';
