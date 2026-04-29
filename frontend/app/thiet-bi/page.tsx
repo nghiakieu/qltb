@@ -194,10 +194,10 @@ function ThietBiContent() {
     }
     const headers = ['Mã TB', 'Tên thiết bị', 'Mã HT', 'Biển số', 'Nhà sản xuất', 'Năm sản xuất', 'Trạng thái', 'Loại', 'Mũi thi công'];
     const rows = equipment.map(tb => [
-      tb.ma_tb || '',
-      tb.id,
+      `"${tb.ma_tb || ''}"`,
       `"${tb.ten_tb}"`,
-      tb.bien_so || '',
+      tb.id,
+      `"${tb.bien_so || ''}"`,
       `"${tb.hang_sx || ''}"`,
       tb.nam_sx || '',
       TRANG_THAI_TB_LABEL[tb.trang_thai] || tb.trang_thai,

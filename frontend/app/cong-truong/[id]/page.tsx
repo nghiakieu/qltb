@@ -50,6 +50,9 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   // Memoized maps for O(1) lookup
   const muiMap = useMemo(() => new Map(muiList.map(m => [m.id, m])), [muiList]);
 
+  // Devices not assigned to any work front
+  const unassignedTb = useMemo(() => allTb.filter(tb => !tb.mui_id), [allTb]);
+
   // Resolve mui name from mui_id
   function getMuiName(muiId: string | null | undefined) {
     if (!muiId) return '-';
@@ -684,7 +687,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                                 try {
                                   await api.updateLog(log.id, editLogNote);
                                   setEditLogId(null);
-                                  fetchData();
+                                  mutateLogs();
                                 } catch (err) {
                                   alert('Lỗi: ' + (err as Error).message);
                                 }
