@@ -25,6 +25,7 @@ export interface MuiThiCong {
   created_at?: string;
   updated_at?: string;
   thiet_bis?: ThietBi[];
+  cong_truong?: CongTruong;
 }
 
 export type LoaiThietBi =

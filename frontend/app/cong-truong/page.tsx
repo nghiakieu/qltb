@@ -106,7 +106,7 @@ export default function CongTruongPage() {
                 <div className="site-card-header">
                   <Link href={`/cong-truong/${site.id}`}><h3>{site.ten_ct}</h3></Link>
                   <div style={{display:'flex', gap:8, alignItems:'center'}}>
-                    <button onClick={() => handleDelete(site.id, site.ten_ct)} title="Xóa"
+                    <button title="Xóa"
                       style={{background:'none', border:'none', cursor:'pointer', fontSize:16, color:'var(--danger)', fontWeight:'bold'}} onClick={() => handleDelete(site.id, site.ten_ct)}>✕</button>
                   </div>
                 </div>

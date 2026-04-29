@@ -138,7 +138,7 @@ function ThietBiContent() {
         ...formData,
         nam_sx: formData.nam_sx ? parseInt(formData.nam_sx) : undefined,
         cong_suat_gio_max: formData.cong_suat_gio_max ? parseFloat(formData.cong_suat_gio_max) : undefined,
-        trang_thai: 'SAN_SANG'
+        trang_thai: 'CHO'
       });
       await fetchData();
       setShowCreate(false);
