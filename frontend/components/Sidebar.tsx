@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { href: '/cau-hinh', icon: '⚙️', label: 'Cấu hình' },
 ];
 
-export default function Sidebar({ children }: { children: ReactNode }) {
+export default function Sidebar({ children, activePath }: { children: ReactNode; activePath?: string }) {
   const pathname = usePathname();
 
   return (
@@ -54,7 +54,7 @@ export default function Sidebar({ children }: { children: ReactNode }) {
             <span className="nav-link-icon">⚙️</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 500 }}>v0.1.0 MVP</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>SQLite Local</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Supabase Cloud</div>
             </div>
           </div>
         </div>
