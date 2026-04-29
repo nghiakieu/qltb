@@ -31,14 +31,14 @@ async def lifespan(app: FastAPI):
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
-    print("[OK] Database tables created")
+    print("[OK] Database tables verified/created on Supabase")
 
-    # Seed demo data
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
+    # Seed demo data (Disabled for production/real data)
+    # db = SessionLocal()
+    # try:
+    #     seed_database(db)
+    # finally:
+    #     db.close()
 
     yield
 

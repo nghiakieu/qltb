@@ -4,6 +4,7 @@ uvicorn[standard]
 
 # Database
 sqlalchemy
+psycopg2-binary
 
 # Validation & Settings
 pydantic
