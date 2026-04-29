@@ -6,7 +6,7 @@ import useSWR, { mutate } from 'swr';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { formatVNDate, formatVNDateTime } from '@/lib/utils';
-import type { CongTruong, MuiThiCong, ThietBi, NhatKySuKien } from '@/types';
+import type { CongTruong, MuiThiCong, ThietBi, NhatKySuKien, TrangThaiThietBi } from '@/types';
 import { TRANG_THAI_TB_LABEL, TRANG_THAI_TB_COLOR } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
 
@@ -385,7 +385,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                 onClick={e => e.stopPropagation()}
                 onChange={async (e) => {
                   e.stopPropagation();
-                  const newStatus = e.target.value;
+                  const newStatus = e.target.value as TrangThaiThietBi;
                   const oldTb = [...allTb];
                   const newTbList = allTb.map(item => 
                     item.id === tb.id ? { ...item, trang_thai: newStatus } : item
@@ -578,7 +578,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           style={{ padding: '4px 10px', fontSize: 12, height: 'auto', border: 'none', backgroundColor: TRANG_THAI_TB_COLOR[tb.trang_thai], color: '#fff', borderRadius: 20, cursor: 'pointer' }}
                           value={tb.trang_thai}
                           onChange={async (e) => {
-                            const newStatus = e.target.value;
+                            const newStatus = e.target.value as TrangThaiThietBi;
                             const oldTb = [...allTb];
                             const newTbList = allTb.map(item => 
                               item.id === tb.id ? { ...item, trang_thai: newStatus } : item

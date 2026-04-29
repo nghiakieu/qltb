@@ -5,7 +5,7 @@ import useSWR, { mutate } from 'swr';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
-import type { ThietBi, CongTruong, MuiThiCong, LoaiThietBi } from '@/types';
+import type { ThietBi, CongTruong, MuiThiCong, LoaiThietBi, TrangThaiThietBi } from '@/types';
 import { TRANG_THAI_TB_LABEL, TRANG_THAI_TB_COLOR } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
 
@@ -323,7 +323,7 @@ function ThietBiContent() {
                     style={{ padding: '4px 8px', fontSize: 13, height: 'auto', minHeight: 28, border: 'none', backgroundColor: TRANG_THAI_TB_COLOR[tb.trang_thai], color: '#fff', borderRadius: 20 }}
                     value={tb.trang_thai}
                     onChange={async (e) => {
-                      const newStatus = e.target.value;
+                      const newStatus = e.target.value as TrangThaiThietBi;
                       const oldTb = [...equipment];
                       const newTbList = equipment.map(item => 
                         item.id === tb.id ? { ...item, trang_thai: newStatus } : item
