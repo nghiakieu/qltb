@@ -1,6 +1,5 @@
-'use client';
-
-import { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, Suspense, useEffect } from 'react';
+import useSWR, { mutate } from 'swr';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
@@ -13,10 +12,11 @@ function ThietBiContent() {
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get('trang_thai') || '';
 
-  const [equipment, setEquipment] = useState<ThietBi[]>([]);
-  const [sites, setSites] = useState<CongTruong[]>([]);
-  const [muiList, setMuiList] = useState<MuiThiCong[]>([]);
-  const [loading, setLoading] = useState(true);
+  // SWR for data fetching
+  const { data: equipment = [], mutate: mutateTb, error: tbError } = useSWR('all-equipment', () => api.listThietBi());
+  const { data: sites = [] } = useSWR('all-sites', () => api.listCongTruong());
+  const { data: muiList = [] } = useSWR('all-mui', () => api.listMuiThiCong());
+
   const [filterLoai, setFilterLoai] = useState('');
   const [filterStatus, setFilterStatus] = useState(initialStatus);
 
@@ -26,34 +26,17 @@ function ThietBiContent() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<{created:number; errors:string[]} | null>(null);
   const [formData, setFormData] = useState({
-    ten_tb: '', loai: 'CAU' as LoaiThietBi, bien_so: '', nam_sx: '', hang_sx: '', cong_suat_gio_max: '', hinh_anh: '/icons/equipment/may_xuc_banh_xich.png'
+    ten_tb: '', 
+    ma_tb: '',
+    loai: 'CAU' as LoaiThietBi, 
+    bien_so: '', 
+    nam_sx: '', 
+    hang_sx: '', 
+    cong_suat_gio_max: '', 
+    hinh_anh: '/icons/equipment/may_xuc_banh_xich.png'
   });
 
   const router = useRouter();
-
-  const fetchData = async () => {
-    console.log('Fetching equipment data...');
-    setLoading(true);
-    try {
-      const [tbData, siteData, muiData] = await Promise.all([
-        api.listThietBi().catch(e => { console.error('listThietBi error:', e); return []; }),
-        api.listCongTruong().catch(e => { console.error('listCongTruong error:', e); return []; }),
-        api.listMuiThiCong().catch(e => { console.error('listMuiThiCong error:', e); return []; }),
-      ]);
-      console.log(`Fetched ${tbData.length} equipments, ${siteData.length} sites, ${muiData.length} mui.`);
-      setEquipment(tbData);
-      setSites(siteData);
-      setMuiList(muiData);
-    } catch (err) {
-      console.error('Error in fetchData:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { 
-    fetchData(); 
-  }, []);
 
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' | null }>({
     key: null,
@@ -130,6 +113,27 @@ function ThietBiContent() {
     });
   }, [sortedData, filterLoai, filterStatus]);
 
+  const suggestMaTb = useCallback(() => {
+    if (!equipment || equipment.length === 0) return 'TB-0001';
+    const codes = equipment
+      .map(e => e.ma_tb)
+      .filter(c => c && c.startsWith('TB-'))
+      .map(c => {
+        const parts = c!.split('-');
+        return parts.length > 1 ? parseInt(parts[1]) : NaN;
+      })
+      .filter(n => !isNaN(n));
+    
+    const maxNum = codes.length > 0 ? Math.max(...codes) : 0;
+    return `TB-${(maxNum + 1).toString().padStart(4, '0')}`;
+  }, [equipment]);
+
+  // Update ma_tb when showCreate changes
+  useEffect(() => {
+    if (showCreate && !formData.ma_tb) {
+      setFormData(prev => ({ ...prev, ma_tb: suggestMaTb() }));
+    }
+  }, [showCreate, suggestMaTb]);
 
   const handleCreate = async () => {
     if (!formData.ten_tb.trim()) return;
@@ -140,9 +144,18 @@ function ThietBiContent() {
         cong_suat_gio_max: formData.cong_suat_gio_max ? parseFloat(formData.cong_suat_gio_max) : undefined,
         trang_thai: 'CHO'
       });
-      await fetchData();
+      mutateTb();
       setShowCreate(false);
-      setFormData({ ten_tb: '', loai: 'CAU' as LoaiThietBi, bien_so: '', nam_sx: '', hang_sx: '', cong_suat_gio_max: '', hinh_anh: '/icons/equipment/may_xuc_banh_xich.png' });
+      setFormData({ 
+        ten_tb: '', 
+        ma_tb: '',
+        loai: 'CAU' as LoaiThietBi, 
+        bien_so: '', 
+        nam_sx: '', 
+        hang_sx: '', 
+        cong_suat_gio_max: '', 
+        hinh_anh: '/icons/equipment/may_xuc_banh_xich.png' 
+      });
     } catch (err) {
       alert('Loi: ' + (err as Error).message);
     }
@@ -150,10 +163,13 @@ function ThietBiContent() {
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Xóa thiết bị "${name}"?`)) return;
+    const oldTb = [...equipment];
+    mutateTb(equipment.filter(e => e.id !== id), false);
     try {
       await api.deleteThietBi(id);
-      setEquipment(equipment.filter(e => e.id !== id));
+      mutateTb();
     } catch (err) {
+      mutateTb(oldTb, false);
       alert('Lỗi: ' + (err as Error).message);
     }
   };
@@ -163,7 +179,7 @@ function ThietBiContent() {
     try {
       const result = await api.uploadCSV(uploadFile);
       setUploadResult(result);
-      await fetchData();
+      mutateTb();
     } catch (err) {
       alert('Tải lên thất bại: ' + (err as Error).message);
     }
@@ -196,38 +212,12 @@ function ThietBiContent() {
     document.body.removeChild(link);
   };
 
-  // Re-fetch data if window is focused (helps with back navigation refresh)
-  useEffect(() => {
-    const onFocus = () => {
-      // Optional: silent refresh
-      // fetchData();
-    };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
-
-  // Use a more descriptive loading state
-  if (loading && equipment.length === 0) {
+  if (equipment.length === 0 && !tbError) {
     return (
-      <div className="loading-container" style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '60vh', 
-        gap: 16 
-      }}>
-        <div className="spinner" />
-        <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-          Đang tải danh sách thiết bị...
-        </div>
-        <button 
-          className="btn btn-ghost btn-sm" 
-          onClick={() => fetchData()}
-          style={{ marginTop: 20 }}
-        >
-          Thử lại
-        </button>
+      <div className="animate-fade-in" style={{ padding: 24 }}>
+        <div style={{ height: 40, width: 200, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 8 }} className="skeleton" />
+        <div style={{ height: 20, width: 400, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 32 }} className="skeleton" />
+        <div style={{ height: 400, background: 'var(--bg-secondary)', borderRadius: 12 }} className="skeleton" />
       </div>
     );
   }
@@ -331,10 +321,17 @@ function ThietBiContent() {
                     style={{ padding: '4px 8px', fontSize: 13, height: 'auto', minHeight: 28, border: 'none', backgroundColor: TRANG_THAI_TB_COLOR[tb.trang_thai], color: '#fff', borderRadius: 20 }}
                     value={tb.trang_thai}
                     onChange={async (e) => {
+                      const newStatus = e.target.value;
+                      const oldTb = [...equipment];
+                      const newTbList = equipment.map(item => 
+                        item.id === tb.id ? { ...item, trang_thai: newStatus } : item
+                      );
+                      mutateTb(newTbList, false);
                       try {
-                        await api.changeTrangThaiThietBi(tb.id, e.target.value);
-                        await fetchData();
+                        await api.changeTrangThaiThietBi(tb.id, newStatus);
+                        mutateTb();
                       } catch (err) {
+                        mutateTb(oldTb, false);
                         alert('Lỗi: ' + (err as Error).message);
                       }
                     }}
@@ -363,10 +360,30 @@ function ThietBiContent() {
         <div className="modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h3>Thêm thiết bị mới</h3>
-            <div className="form-group">
-              <label>Tên thiết bị *</label>
-              <input className="form-input" placeholder="VD: Máy đào Komatsu PC200-8" value={formData.ten_tb}
-                onChange={e => setFormData({...formData, ten_tb: e.target.value})} autoFocus />
+            <div style={{display:'flex', gap:12}}>
+              <div className="form-group" style={{flex:2}}>
+                <label>Tên thiết bị *</label>
+                <input className="form-input" placeholder="VD: Máy đào Komatsu PC200-8" value={formData.ten_tb}
+                  onChange={e => setFormData({...formData, ten_tb: e.target.value})} autoFocus />
+              </div>
+              <div className="form-group" style={{flex:1}}>
+                <label>Mã thiết bị (Đề xuất)</label>
+                <div style={{position:'relative'}}>
+                  <input className="form-input" placeholder="TB-0001" value={formData.ma_tb}
+                    onChange={e => setFormData({...formData, ma_tb: e.target.value})} />
+                  <button 
+                    type="button"
+                    onClick={() => setFormData({...formData, ma_tb: suggestMaTb()})}
+                    style={{
+                      position:'absolute', right:8, top:8, background:'none', border:'none', 
+                      cursor:'pointer', opacity:0.5, fontSize:14
+                    }}
+                    title="Tạo mã mới"
+                  >
+                    🔄
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="form-group">
               <label>Loại thiết bị *</label>

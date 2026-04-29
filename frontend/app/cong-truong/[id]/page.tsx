@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, use, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { use, useMemo, useState, useCallback } from 'react';
+import useSWR, { mutate } from 'swr';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { formatVNDate, formatVNDateTime } from '@/lib/utils';
@@ -16,14 +16,17 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   const resolvedParams = use(params);
   const ctId = resolvedParams.id;
 
-  const [site, setSite] = useState<CongTruong | null>(null);
-  const [muiList, setMuiList] = useState<MuiThiCong[]>([]);
-  const [allTb, setAllTb] = useState<ThietBi[]>([]);
-  const [logs, setLogs] = useState<NhatKySuKien[]>([]);
+  // SWR for data fetching
+  const { data: site, error: siteError } = useSWR(`site-${ctId}`, () => api.getCongTruong(ctId));
+  const { data: muiList = [], mutate: mutateMui } = useSWR(`mui-list-${ctId}`, () => api.listMuiThiCong(ctId));
+  const { data: allTb = [], mutate: mutateTb } = useSWR(`tb-list-${ctId}`, () => api.listThietBi({ cong_truong_id: ctId }));
+  const { data: sites = [] } = useSWR('all-sites', () => api.listCongTruong());
+  const { data: logs = [], mutate: mutateLogs } = useSWR(`logs-${ctId}`, () => api.listLogs({ cong_truong_id: ctId }));
+
   const [editLogId, setEditLogId] = useState<string | null>(null);
   const [editLogNote, setEditLogNote] = useState<string>('');
-  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'kanban' | 'list' | 'logs'>('kanban');
+  const [loading, setLoading] = useState(false); // Only for explicit actions
 
   // Modal states
   const [showAddMui, setShowAddMui] = useState(false);
@@ -32,7 +35,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   const [showAddTb, setShowAddTb] = useState(false);
   const [targetMuiId, setTargetMuiId] = useState<string | null>(null);
   const [availableTb, setAvailableTb] = useState<ThietBi[]>([]);
-  const [sites, setSites] = useState<CongTruong[]>([]);
+
   // Drag state
   const [dragTbId, setDragTbId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -46,7 +49,6 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
 
   // Memoized maps for O(1) lookup
   const muiMap = useMemo(() => new Map(muiList.map(m => [m.id, m])), [muiList]);
-  const siteMap = useMemo(() => new Map(sites.map(s => [s.id, s])), [sites]);
 
   // Resolve mui name from mui_id
   function getMuiName(muiId: string | null | undefined) {
@@ -71,7 +73,6 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
       let aValue: any = a[sortConfig.key as keyof ThietBi];
       let bValue: any = b[sortConfig.key as keyof ThietBi];
 
-      // Special cases for nested or derived fields
       if (sortConfig.key === 'mui_thi_cong') {
         aValue = getMuiName(a.mui_id);
         bValue = getMuiName(b.mui_id);
@@ -89,36 +90,12 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     });
   }, [allTb, sortConfig, muiMap]);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [siteData, muiData, tbData, allSitesData, logsData] = await Promise.all([
-        api.getCongTruong(ctId),
-        api.listMuiThiCong(ctId),
-        api.listThietBi({ cong_truong_id: ctId }),
-        api.listCongTruong(),
-        api.listLogs({ cong_truong_id: ctId })
-      ]);
-      setSite(siteData);
-      setMuiList(muiData);
-      setAllTb(tbData);
-      setSites(allSitesData);
-      setLogs(logsData);
-    } catch (err) {
-      console.error('Failed to fetch:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [ctId]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  // Get equipment for a given work front (or unassigned in this site)
-  const muiIds = muiList.map(m => m.id);
-  const tbForMui = (muiId: string | null) =>
-    allTb.filter(tb => muiId ? tb.mui_id === muiId : !tb.mui_id);
-
-  // Unassigned in this site = equipment belonging to site but no mui
-  const unassignedTb = allTb.filter(tb => !tb.mui_id);
+  // Refetch helper
+  const refreshAll = useCallback(() => {
+    mutateMui();
+    mutateTb();
+    mutateLogs();
+  }, [mutateMui, mutateTb, mutateLogs]);
 
   // --- Drag & Drop handlers ---
   const handleDragStart = (e: React.DragEvent, tbId: string) => {
@@ -146,15 +123,37 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
 
   const handleDrop = async (e: React.DragEvent, muiId: string | null) => {
     e.preventDefault();
-    setDropTarget(null);
     const tbId = e.dataTransfer.getData('text/plain') || dragTbId;
+    setDropTarget(null);
     if (!tbId) return;
 
+    const targetMuiId = muiId === '__unassigned' ? null : muiId;
+    
+    // Find if the equipment is actually changing position
+    const targetTb = allTb.find(t => t.id === tbId);
+    if (targetTb?.mui_id === targetMuiId) return;
+
+    // Optimistic UI Update
+    const oldTb = [...allTb];
+    const newTb = allTb.map(tb => 
+      tb.id === tbId ? { ...tb, mui_id: targetMuiId } : tb
+    );
+    
+    // 1. Update UI immediately
+    mutateTb(newTb, false);
+
     try {
-      // Pass ctId to ensure it stays within this construction site
-      await api.phanBoThietBi(tbId, muiId, ctId);
-      await fetchData();
+      // 2. Perform API call in background
+      await api.phanBoThietBi(tbId, targetMuiId, ctId);
+      
+      // 3. Silently revalidate logs and TB list to sync with server
+      // We don't need to block UI for this
+      mutateLogs();
+      // Revalidate TB list but keep the current local state if possible
+      mutateTb(); 
     } catch (err) {
+      // 4. Rollback only on error
+      mutateTb(oldTb, false);
       alert('Lỗi phân bổ: ' + (err as Error).message);
     }
   };
@@ -164,7 +163,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     if (!newMuiName.trim()) return;
     try {
       await api.createMuiThiCong({ ten_mui: newMuiName, cong_truong_id: ctId });
-      await fetchData();
+      mutateMui();
       setShowAddMui(false);
       setNewMuiName('');
     } catch (err) {
@@ -176,7 +175,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     if (!editMui || !editMui.name.trim()) return;
     try {
       await api.updateMuiThiCong(editMui.id, { ten_mui: editMui.name });
-      await fetchData();
+      mutateMui();
       setEditMui(null);
     } catch (err) {
       alert('Lỗi: ' + (err as Error).message);
@@ -192,7 +191,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
         await api.phanBoThietBi(tb.id, null, ctId);
       }
       await api.deleteMuiThiCong(muiId);
-      await fetchData();
+      refreshAll();
     } catch (err) {
       alert('Lỗi: ' + (err as Error).message);
     }
@@ -205,17 +204,27 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   };
 
   const assignTbToMui = async (tbIds: string[], muiId: string | null) => {
+    if (tbIds.length === 0) return;
+    
+    // Optimistic Update for batch assignment
+    const oldTb = [...allTb];
+    // We only have availableTb here which might be from other sites, 
+    // so we can't easily optimistic-update 'allTb' unless they are already in the list.
+    // However, for equipment already in this site, we can.
+    
     try {
       setLoading(true);
-      for (const id of tbIds) {
-        await api.phanBoThietBi(id, muiId, ctId, movementNote);
-      }
-      await fetchData();
+      // Run all requests in parallel for maximum speed
+      await Promise.all(tbIds.map(id => api.phanBoThietBi(id, muiId, ctId, movementNote)));
+      
+      // Refresh everything once done
+      await refreshAll();
       setShowAddTb(false);
       setSelectedTbIds([]);
       setMovementNote('');
     } catch (err) {
-      alert('Lỗi phân bổ: ' + (err as Error).message);
+      alert('Lỗi phân bổ hàng loạt: ' + (err as Error).message);
+      refreshAll(); // Ensure UI is in sync after error
     } finally {
       setLoading(false);
     }
@@ -225,7 +234,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     if (!confirm('Bạn có chắc chắn muốn xóa nhật ký này?')) return;
     try {
       await api.deleteLog(logId);
-      await fetchData();
+      mutateLogs();
     } catch (err) {
       alert('Lỗi khi xóa nhật ký: ' + (err as Error).message);
     }
@@ -238,17 +247,34 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   // --- Add equipment from other sites ---
   const openAddTbModal = async (muiId: string | null) => {
     setTargetMuiId(muiId);
-    // Fetch global unassigned equipment
-    const globalUnassigned = await api.listThietBi({ chua_phan_bo: true });
-    const available = globalUnassigned.filter(tb => tb.cong_truong_id !== ctId);
-    setAvailableTb(available);
-    setSelectedTbIds([]);
-    setShowAddTb(true);
+    try {
+      const globalUnassigned = await api.listThietBi({ chua_phan_bo: true });
+      const available = globalUnassigned.filter(tb => tb.cong_truong_id !== ctId);
+      setAvailableTb(available);
+      setSelectedTbIds([]);
+      setShowAddTb(true);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  if (!site && !siteError) {
+    return (
+      <Sidebar>
+        <div className="animate-fade-in" style={{ padding: 24 }}>
+          <div style={{ height: 40, width: 300, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 12 }} className="skeleton" />
+          <div style={{ height: 20, width: 500, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 32 }} className="skeleton" />
+          <div style={{ display: 'flex', gap: 16, height: 'calc(100vh - 200px)' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ flex: 1, background: 'var(--bg-secondary)', borderRadius: 12, padding: 16 }} className="skeleton" />
+            ))}
+          </div>
+        </div>
+      </Sidebar>
+    );
+  }
 
-  if (loading) return <Sidebar><div className="loading"><div className="spinner" /> Loading...</div></Sidebar>;
-  if (!site) return <Sidebar><div className="loading">Không tìm thấy công trường</div></Sidebar>;
+  if (siteError || !site) return <Sidebar><div className="loading">Không tìm thấy công trường</div></Sidebar>;
 
   const renderTbCard = (tb: ThietBi) => {
     return (
@@ -359,10 +385,17 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                 onClick={e => e.stopPropagation()}
                 onChange={async (e) => {
                   e.stopPropagation();
+                  const newStatus = e.target.value;
+                  const oldTb = [...allTb];
+                  const newTbList = allTb.map(item => 
+                    item.id === tb.id ? { ...item, trang_thai: newStatus } : item
+                  );
+                  mutateTb(newTbList, false);
                   try {
-                    await api.changeTrangThaiThietBi(tb.id, e.target.value);
-                    await fetchData();
+                    await api.changeTrangThaiThietBi(tb.id, newStatus);
+                    mutateTb();
                   } catch (err) {
+                    mutateTb(oldTb, false);
                     alert('Lỗi: ' + (err as Error).message);
                   }
                 }}
@@ -545,10 +578,17 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           style={{ padding: '4px 10px', fontSize: 12, height: 'auto', border: 'none', backgroundColor: TRANG_THAI_TB_COLOR[tb.trang_thai], color: '#fff', borderRadius: 20, cursor: 'pointer' }}
                           value={tb.trang_thai}
                           onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            const oldTb = [...allTb];
+                            const newTbList = allTb.map(item => 
+                              item.id === tb.id ? { ...item, trang_thai: newStatus } : item
+                            );
+                            mutateTb(newTbList, false);
                             try {
-                              await api.changeTrangThaiThietBi(tb.id, e.target.value);
-                              await fetchData();
+                              await api.changeTrangThaiThietBi(tb.id, newStatus);
+                              mutateTb();
                             } catch (err) {
+                              mutateTb(oldTb, false);
                               alert('Lỗi: ' + (err as Error).message);
                             }
                           }}

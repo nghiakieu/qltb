@@ -45,15 +45,17 @@ def rebuild():
     print("Inserting new equipment data...")
     from datetime import datetime
     now = datetime.now().isoformat()
-    for loai, ten, bien_so in EQUIPMENT_DATA:
+    
+    for i, (loai, ten, bien_so) in enumerate(EQUIPMENT_DATA):
         new_id = str(uuid.uuid4())
+        ma_tb = f"TB-{i+1:04d}"
         session.execute(
-            text("INSERT INTO thiet_bi (id, ten_tb, loai, bien_so, trang_thai, created_at, updated_at) VALUES (:id, :ten, :loai, :bien_so, :trang_thai, :now, :now)"),
-            {"id": new_id, "ten": ten, "loai": loai, "bien_so": bien_so, "trang_thai": "HOAT_DONG", "now": now}
+            text("INSERT INTO thiet_bi (id, ma_tb, ten_tb, loai, bien_so, trang_thai, created_at, updated_at) VALUES (:id, :ma_tb, :ten, :loai, :bien_so, :trang_thai, :now, :now)"),
+            {"id": new_id, "ma_tb": ma_tb, "ten": ten, "loai": loai, "bien_so": bien_so, "trang_thai": "HOAT_DONG", "now": now}
         )
     
     session.commit()
-    print("Successfully rebuilt equipment data with 23 machine types.")
+    print(f"Successfully rebuilt equipment data with {len(EQUIPMENT_DATA)} machines and generated codes.")
 
 if __name__ == "__main__":
     rebuild()

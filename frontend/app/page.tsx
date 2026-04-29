@@ -1,36 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 import Sidebar from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import type { DashboardStats, CongTruong, SiteStats, TrangThaiThietBi } from '@/types';
 import { TRANG_THAI_TB_LABEL } from '@/types';
-
-export default function DashboardPage() {
-  const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [sites, setSites] = useState<CongTruong[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [dashData, siteData] = await Promise.all([
-          api.getDashboard(),
-          api.listCongTruong(),
-        ]);
-        setStats(dashData);
-        setSites(siteData);
-      } catch (err) {
-        console.error('Failed to fetch dashboard:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+import Link from 'next/link';
+  
+  // SWR for data fetching
+  const { data: stats, error: statsError } = useSWR('dashboard-stats', api.getDashboard);
+  const { data: sites = [], error: sitesError } = useSWR('all-sites', api.listCongTruong);
 
   // Click on status KPI to navigate to equipment list with filter
   const handleCardClick = (kpi: any) => {
@@ -41,8 +22,20 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return <Sidebar><div className="loading"><div className="spinner" /> Loading...</div></Sidebar>;
+  if (!stats && !statsError) {
+    return (
+      <Sidebar>
+        <div className="animate-fade-in" style={{ padding: 24 }}>
+          <div style={{ height: 40, width: 200, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 8 }} className="skeleton" />
+          <div style={{ height: 20, width: 400, background: 'var(--bg-secondary)', borderRadius: 8, marginBottom: 32 }} className="skeleton" />
+          <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} style={{ height: 100, background: 'var(--bg-secondary)', borderRadius: 12 }} className="skeleton" />
+            ))}
+          </div>
+        </div>
+      </Sidebar>
+    );
   }
 
   const kpiCards = stats ? [

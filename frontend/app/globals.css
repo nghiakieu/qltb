@@ -162,7 +162,8 @@ a {
   background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.03), transparent 40%);
   padding: 24px;
   min-height: 0;
-  height: 100%; /* Changed from 100vh to 100% to fill app-layout exactly */
+  height: 100%;
+  transition: opacity 0.2s ease;
 }
 
 .main-content > * {
@@ -747,7 +748,23 @@ a {
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease both;
+  animation: fadeIn 0.3s ease both;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite ease-in-out;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Utils */
