@@ -59,7 +59,7 @@ export interface ThietBi {
   updated_at?: string;
   lai_xe?: NhanSu;
   mui_thi_cong?: MuiThiCong;
-  id_cong_truong?: string | null;
+  cong_truong_id?: string | null;
 }
 
 export interface NhatKySuKien {
