@@ -15,5 +15,8 @@ python-dotenv
 python-jose[cryptography]
 passlib[bcrypt]
 
+# Rate Limiting
+slowapi
+
 # CORS & Utils
 python-multipart
