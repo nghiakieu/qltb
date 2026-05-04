@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.database import get_db
+from app.dependencies.auth import get_scope_filter
 from app.models.mui_thi_cong import MuiThiCong
 from app.schemas.schemas import (
     MuiThiCongCreate, MuiThiCongUpdate,
@@ -19,9 +20,16 @@ def list_mui_thi_cong(
     cong_truong_id: Optional[str] = None,
     trang_thai: Optional[str] = None,
     db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """List work fronts, optionally filtered by construction site or status."""
     query = db.query(MuiThiCong)
+    
+    if scope["mui_ids"] is not None:
+        query = query.filter(MuiThiCong.id.in_(scope["mui_ids"]))
+    elif scope["cong_truong_ids"] is not None:
+        query = query.filter(MuiThiCong.cong_truong_id.in_(scope["cong_truong_ids"]))
+        
     if cong_truong_id:
         query = query.filter(MuiThiCong.cong_truong_id == cong_truong_id)
     if trang_thai:

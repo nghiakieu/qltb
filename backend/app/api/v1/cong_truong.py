@@ -11,6 +11,8 @@ from app.schemas.schemas import (
     CongTruongResponse, CongTruongDetail,
 )
 
+from app.dependencies.auth import get_scope_filter
+
 router = APIRouter()
 
 
@@ -18,11 +20,16 @@ router = APIRouter()
 def list_cong_truong(
     trang_thai: Optional[str] = None,
     db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter),
 ):
-    """List all construction sites, optionally filtered by status."""
+    """List all construction sites, optionally filtered by status and RBAC scope."""
     query = db.query(CongTruong)
     if trang_thai:
         query = query.filter(CongTruong.trang_thai == trang_thai)
+        
+    if scope["cong_truong_ids"] is not None:
+        query = query.filter(CongTruong.id.in_(scope["cong_truong_ids"]))
+        
     return query.order_by(CongTruong.created_at.desc()).all()
 
 

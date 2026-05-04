@@ -2,9 +2,11 @@
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, aliased
+from sqlalchemy import or_
 
 from app.db.database import get_db
+from app.dependencies.auth import get_scope_filter
 from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
 from app.models.thiet_bi import ThietBi
 from app.models.mui_thi_cong import MuiThiCong
@@ -44,7 +46,8 @@ def create_yeu_cau(data: YeuCauDieuPhoiCreate, db: Session = Depends(get_db)):
 def list_yeu_cau(
     trang_thai: Optional[str] = None,
     thiet_bi_id: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """Lấy danh sách yêu cầu điều phối."""
     query = db.query(YeuCauDieuPhoi).options(
@@ -52,6 +55,26 @@ def list_yeu_cau(
         joinedload(YeuCauDieuPhoi.tu_mui),
         joinedload(YeuCauDieuPhoi.den_mui)
     )
+    
+    if scope["mui_ids"] is not None:
+        query = query.filter(
+            or_(
+                YeuCauDieuPhoi.tu_mui_id.in_(scope["mui_ids"]),
+                YeuCauDieuPhoi.den_mui_id.in_(scope["mui_ids"])
+            )
+        )
+    elif scope["cong_truong_ids"] is not None:
+        TuMui = aliased(MuiThiCong)
+        DenMui = aliased(MuiThiCong)
+        query = query.outerjoin(TuMui, YeuCauDieuPhoi.tu_mui_id == TuMui.id) \
+                     .outerjoin(DenMui, YeuCauDieuPhoi.den_mui_id == DenMui.id) \
+                     .filter(
+                         or_(
+                             TuMui.cong_truong_id.in_(scope["cong_truong_ids"]),
+                             DenMui.cong_truong_id.in_(scope["cong_truong_ids"])
+                         )
+                     )
+
     if trang_thai:
         query = query.filter(YeuCauDieuPhoi.trang_thai_yeu_cau == trang_thai)
     if thiet_bi_id:

@@ -2,21 +2,38 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+// Get access token from sessionStorage (set by AuthContext)
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return sessionStorage.getItem('qltb_access_token');
+}
+
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      // Token expired — clear session and redirect to login
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('qltb_access_token');
+        sessionStorage.removeItem('qltb_refresh_token');
+        window.location.href = '/login';
+      }
+    }
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || `API Error ${res.status}`);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
 
 import type {
   DashboardStats, CongTruong, MuiThiCong,
@@ -176,4 +193,82 @@ export const api = {
     const qs = searchParams.toString();
     return `${API_BASE}/api/v1/bao-cao/export${qs ? '?' + qs : ''}`;
   },
+};
+
+// ── Admin API ──────────────────────────────────────────────────────────────
+export interface TaiKhoanAdmin {
+  id: string;
+  username: string;
+  ho_ten: string;
+  vai_tro: string;
+  email?: string | null;
+  is_active: boolean;
+  nhan_su_id?: string | null;
+  created_by?: string | null;
+  last_login?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PhamVi {
+  id: string;
+  tai_khoan_id: string;
+  cong_truong_id?: string | null;
+  mui_thi_cong_id?: string | null;
+}
+
+export const adminApi = {
+  // List all accounts
+  listTaiKhoan: () => fetchAPI<TaiKhoanAdmin[]>('/api/v1/admin/tai-khoan'),
+
+  // Get single
+  getTaiKhoan: (id: string) => fetchAPI<TaiKhoanAdmin>(`/api/v1/admin/tai-khoan/${id}`),
+
+  // Create
+  createTaiKhoan: (data: {
+    username: string;
+    password: string;
+    ho_ten: string;
+    vai_tro: string;
+    email?: string;
+  }) => fetchAPI<TaiKhoanAdmin>('/api/v1/admin/tai-khoan', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  // Update
+  updateTaiKhoan: (id: string, data: {
+    ho_ten?: string;
+    email?: string;
+    vai_tro?: string;
+    is_active?: boolean;
+    new_password?: string;
+  }) => fetchAPI<TaiKhoanAdmin>(`/api/v1/admin/tai-khoan/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+
+  // Toggle lock
+  toggleActive: (id: string) => fetchAPI<TaiKhoanAdmin>(`/api/v1/admin/tai-khoan/${id}/toggle-active`, {
+    method: 'PATCH',
+  }),
+
+  // Delete
+  deleteTaiKhoan: (id: string) => fetchAPI<void>(`/api/v1/admin/tai-khoan/${id}`, {
+    method: 'DELETE',
+  }),
+
+  // Scope management
+  getPhamVi: (userId: string) => fetchAPI<PhamVi[]>(`/api/v1/admin/tai-khoan/${userId}/pham-vi`),
+
+  addPhamVi: (userId: string, data: { cong_truong_id?: string; mui_thi_cong_id?: string }) =>
+    fetchAPI<PhamVi>(`/api/v1/admin/tai-khoan/${userId}/pham-vi`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  removePhamVi: (userId: string, pvId: string) =>
+    fetchAPI<void>(`/api/v1/admin/tai-khoan/${userId}/pham-vi/${pvId}`, {
+      method: 'DELETE',
+    }),
 };

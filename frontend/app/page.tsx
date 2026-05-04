@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Sidebar from '@/components/Sidebar';
+import { RouteGuard } from '@/components/RouteGuard';
 import { api } from '@/lib/api';
 import type { DashboardStats, CongTruong, SiteStats, TrangThaiThietBi } from '@/types';
 import { TRANG_THAI_TB_LABEL } from '@/types';
 import Link from 'next/link';
-export default function Dashboard() {
+
+function DashboardContent() {
+
   const router = useRouter();
   
   // SWR for data fetching
@@ -204,5 +207,13 @@ export default function Dashboard() {
         </div>
       </div>
     </Sidebar>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <RouteGuard>
+      <DashboardContent />
+    </RouteGuard>
   );
 }

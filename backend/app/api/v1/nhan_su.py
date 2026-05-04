@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.dependencies.auth import get_scope_filter
 from app.models.nhan_su import NhanSu
 from app.schemas.schemas import NhanSuCreate, NhanSuUpdate, NhanSuResponse
 
@@ -16,9 +17,14 @@ def list_nhan_su(
     cong_truong_id: Optional[str] = None,
     chuc_vu: Optional[str] = None,
     db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """List personnel, optionally filtered by site or role."""
     query = db.query(NhanSu)
+    
+    if scope["cong_truong_ids"] is not None:
+        query = query.filter(NhanSu.cong_truong_id.in_(scope["cong_truong_ids"]))
+        
     if cong_truong_id:
         query = query.filter(NhanSu.cong_truong_id == cong_truong_id)
     if chuc_vu:

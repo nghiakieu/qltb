@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
+import { RouteGuard } from '@/components/RouteGuard';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import { api } from '@/lib/api';
 import type { CongTruong } from '@/types';
 
@@ -48,16 +50,19 @@ export default function CongTruongPage() {
   if (loading) return <Sidebar><div className="loading"><div className="spinner" /> Loading...</div></Sidebar>;
 
   return (
-    <Sidebar>
-      <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
-        <div className="page-header">
-          <h2>Công trường</h2>
-          <p>Quản lý tất cả công trường</p>
-        </div>
+    <RouteGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI', 'GIAM_SAT']}>
+      <Sidebar>
+        <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
+          <div className="page-header">
+            <h2>Công trường</h2>
+            <p>Quản lý tất cả công trường</p>
+          </div>
 
-        <div className="toolbar">
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Thêm công trường</button>
-        </div>
+          <PermissionGuard allowedRoles={['ADMIN']}>
+            <div className="toolbar">
+              <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Thêm công trường</button>
+            </div>
+          </PermissionGuard>
 
         {/* Create Modal */}
         {showForm && (
@@ -105,10 +110,12 @@ export default function CongTruongPage() {
               <div className="site-card" key={site.id}>
                 <div className="site-card-header">
                   <Link href={`/cong-truong/${site.id}`}><h3>{site.ten_ct}</h3></Link>
-                  <div style={{display:'flex', gap:8, alignItems:'center'}}>
-                    <button title="Xóa"
-                      style={{background:'none', border:'none', cursor:'pointer', fontSize:16, color:'var(--danger)', fontWeight:'bold'}} onClick={() => handleDelete(site.id, site.ten_ct)}>✕</button>
-                  </div>
+                  <PermissionGuard allowedRoles={['ADMIN']}>
+                    <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                      <button title="Xóa"
+                        style={{background:'none', border:'none', cursor:'pointer', fontSize:16, color:'var(--danger)', fontWeight:'bold'}} onClick={() => handleDelete(site.id, site.ten_ct)}>✕</button>
+                    </div>
+                  </PermissionGuard>
                 </div>
                 <div className="site-card-meta">
                   <span>📍 {site.dia_chi}</span>
@@ -123,6 +130,7 @@ export default function CongTruongPage() {
           </div>
         </div>
       </div>
-    </Sidebar>
+      </Sidebar>
+    </RouteGuard>
   );
 }

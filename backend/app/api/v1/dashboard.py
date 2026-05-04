@@ -15,6 +15,7 @@ from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
 from app.models.ca_lam_viec import CaLamViec
 from app.schemas.schemas import DashboardStats
 from app.core.datetime_utils import today_ict
+from app.dependencies.auth import get_scope_filter, get_current_user
 
 router = APIRouter()
 
@@ -38,34 +39,46 @@ class DashboardFull(DashboardStats):
 
 
 @router.get("", response_model=DashboardFull)
-def get_dashboard(db: Session = Depends(get_db)):
+def get_dashboard(db: Session = Depends(get_db), scope: dict = Depends(get_scope_filter)):
     """Get overview statistics + per-site breakdown."""
-    total_tb = db.query(func.count(ThietBi.id)).scalar() or 0
+    base_tb_query = db.query(ThietBi)
+    if scope["cong_truong_ids"] is not None:
+        base_tb_query = base_tb_query.filter(ThietBi.cong_truong_id.in_(scope["cong_truong_ids"]))
+    if scope["mui_ids"] is not None:
+        base_tb_query = base_tb_query.filter(ThietBi.mui_id.in_(scope["mui_ids"]))
 
-    # Count by status (company-wide)
+    total_tb = base_tb_query.with_entities(func.count(ThietBi.id)).scalar() or 0
+
+    # Count by status (company-wide or scope-wide)
     status_counts = (
-        db.query(ThietBi.trang_thai, func.count(ThietBi.id))
+        base_tb_query.with_entities(ThietBi.trang_thai, func.count(ThietBi.id))
         .group_by(ThietBi.trang_thai)
         .all()
     )
     status_map = {s: c for s, c in status_counts}
 
     # Per-site breakdown
-    sites = db.query(CongTruong).all()
+    site_query = db.query(CongTruong)
+    if scope["cong_truong_ids"] is not None:
+        site_query = site_query.filter(CongTruong.id.in_(scope["cong_truong_ids"]))
+    sites = site_query.all()
+    
     per_site = []
     for ct in sites:
         # Get all mui_ids for this site
-        mui_ids = [m.id for m in db.query(MuiThiCong.id).filter(MuiThiCong.cong_truong_id == ct.id).all()]
+        mui_query = db.query(MuiThiCong.id).filter(MuiThiCong.cong_truong_id == ct.id)
+        if scope["mui_ids"] is not None:
+            mui_query = mui_query.filter(MuiThiCong.id.in_(scope["mui_ids"]))
+        mui_ids = [m.id for m in mui_query.all()]
 
-        # Count all equipment assigned to this site (including unassigned to muis)
-        site_tb_query = (
-            db.query(ThietBi.trang_thai, func.count(ThietBi.id))
-            .filter(ThietBi.cong_truong_id == ct.id)
-            .group_by(ThietBi.trang_thai)
-            .all()
-        )
+        # Count all equipment assigned to this site
+        site_tb_query_filter = db.query(ThietBi.trang_thai, func.count(ThietBi.id)).filter(ThietBi.cong_truong_id == ct.id)
+        if scope["mui_ids"] is not None:
+            site_tb_query_filter = site_tb_query_filter.filter(ThietBi.mui_id.in_(scope["mui_ids"]))
+            
+        site_tb_query_result = site_tb_query_filter.group_by(ThietBi.trang_thai).all()
 
-        site_status = {s: c for s, c in site_tb_query}
+        site_status = {s: c for s, c in site_tb_query_result}
         site_total = sum(site_status.values())
 
         per_site.append(SiteStats(

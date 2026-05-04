@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import type { ThietBi, CongTruong, MuiThiCong, LoaiThietBi, TrangThaiThietBi } from '@/types';
 import { TRANG_THAI_TB_LABEL, TRANG_THAI_TB_COLOR } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
+import { PermissionGuard } from '@/components/PermissionGuard';
 
 function ThietBiContent() {
   const { types, getLabel, getIconNode, availableIcons: EQUIPMENT_ICONS } = useEquipmentTypes();
@@ -244,8 +245,10 @@ function ThietBiContent() {
         <span style={{color:'var(--text-muted)', fontSize:13}}>Hiển thị {filtered.length} / {equipment.length} thiết bị</span>
         <div className="toolbar-right">
           <button className="btn btn-ghost btn-sm" onClick={handleDownload}>⬇️ Tải xuống CSV</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowUpload(true)}>⬆️ Tải lên CSV</button>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ Thêm thiết bị</button>
+          <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowUpload(true)}>⬆️ Tải lên CSV</button>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ Thêm thiết bị</button>
+          </PermissionGuard>
         </div>
       </div>
 
@@ -348,7 +351,9 @@ function ThietBiContent() {
                 <td style={{ textAlign: 'center' }}>{tb.cong_suat_gio_max ? `${tb.cong_suat_gio_max}h` : '-'}</td>
                 <td>
                   <div className="row-actions">
-                    <button onClick={() => handleDelete(tb.id, tb.ten_tb)} title="Xóa" style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✕</button>
+                    <PermissionGuard allowedRoles={['ADMIN']}>
+                      <button onClick={() => handleDelete(tb.id, tb.ten_tb)} title="Xóa" style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✕</button>
+                    </PermissionGuard>
                   </div>
                 </td>
               </tr>

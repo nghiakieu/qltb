@@ -6,6 +6,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.core.limiter import limiter
 
 from app.core.config import settings
 from app.db.database import engine, SessionLocal
@@ -19,8 +23,11 @@ from app.models.nhan_su import NhanSu  # noqa: F401
 from app.models.nhat_ky_su_kien import NhatKySuKien  # noqa: F401
 from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi  # noqa: F401
 from app.models.ca_lam_viec import CaLamViec  # noqa: F401
+from app.models.tai_khoan import TaiKhoan, TaiKhoanPhamVi  # noqa: F401
 
 from app.api.v1.router import router as api_router
+from app.core.security import hash_password
+from app.db.database import SessionLocal
 from app.db.seed import seed_database
 
 
@@ -31,14 +38,27 @@ async def lifespan(app: FastAPI):
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
-    print("[OK] Database tables verified/created on Supabase")
+    print("[OK] Database tables verified/created")
 
-    # Seed demo data (Disabled for production/real data)
-    # db = SessionLocal()
-    # try:
-    #     seed_database(db)
-    # finally:
-    #     db.close()
+    # Seed default admin account if none exists
+    db = SessionLocal()
+    try:
+        admin_exists = db.query(TaiKhoan).filter(TaiKhoan.vai_tro == "ADMIN").first()
+        if not admin_exists:
+            admin = TaiKhoan(
+                username=settings.ADMIN_USERNAME,
+                password_hash=hash_password(settings.ADMIN_PASSWORD),
+                ho_ten=settings.ADMIN_HO_TEN,
+                vai_tro="ADMIN",
+                is_active=True,
+            )
+            db.add(admin)
+            db.commit()
+            print(f"[SEED] Admin account created: '{settings.ADMIN_USERNAME}'")
+        else:
+            print(f"[OK] Admin account already exists: '{admin_exists.username}'")
+    finally:
+        db.close()
 
     yield
 
@@ -51,6 +71,10 @@ app = FastAPI(
     description="Equipment Management System for Bridge & Road Construction Sites",
     lifespan=lifespan,
 )
+
+# Add slowapi limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS - allow frontend to connect
 app.add_middleware(

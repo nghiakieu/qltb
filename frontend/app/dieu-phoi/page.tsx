@@ -20,6 +20,7 @@ import {
   ChevronRight,
   MapPin
 } from 'lucide-react';
+import { PermissionGuard } from '@/components/PermissionGuard';
 
 function DieuPhoiContent() {
   const { getLabel, getIconNode } = useEquipmentTypes();
@@ -200,10 +201,12 @@ function DieuPhoiContent() {
           </select>
         </div>
         <div className="toolbar-right">
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            <Plus size={18} />
-            <span>Tạo yêu cầu mới</span>
-          </button>
+          <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI']}>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+              <Plus size={18} />
+              <span>Tạo yêu cầu mới</span>
+            </button>
+          </PermissionGuard>
         </div>
       </div>
 
@@ -277,7 +280,7 @@ function DieuPhoiContent() {
                   <td>
                     <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                       {req.trang_thai_yeu_cau === 'CHO_DUYET' && (
-                        <>
+                        <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
                           <button 
                             className="btn btn-sm" 
                             style={{ background: '#10b98115', color: '#059669' }}
@@ -294,28 +297,32 @@ function DieuPhoiContent() {
                           >
                             <XCircle size={16} />
                           </button>
-                        </>
+                        </PermissionGuard>
                       )}
                       
                       {req.trang_thai_yeu_cau === 'DA_DUYET' && (
-                        <button 
-                          className="btn btn-sm btn-primary"
-                          onClick={() => handleUpdateStatus(req.id, 'DA_THUC_HIEN')}
-                          title="Hoàn thành điều chuyển"
-                        >
-                          <Truck size={16} />
-                          <span>Thực hiện</span>
-                        </button>
+                        <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
+                          <button 
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleUpdateStatus(req.id, 'DA_THUC_HIEN')}
+                            title="Hoàn thành điều chuyển"
+                          >
+                            <Truck size={16} />
+                            <span>Thực hiện</span>
+                          </button>
+                        </PermissionGuard>
                       )}
                       
-                      <button 
-                        className="btn btn-sm btn-ghost" 
-                        onClick={() => handleDelete(req.id)}
-                        style={{ color: '#ef4444' }}
-                        title="Xóa yêu cầu"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <PermissionGuard allowedRoles={['ADMIN']}>
+                        <button 
+                          className="btn btn-sm btn-ghost" 
+                          onClick={() => handleDelete(req.id)}
+                          style={{ color: '#ef4444' }}
+                          title="Xóa yêu cầu"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import { api } from '@/lib/api';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -66,7 +67,7 @@ export default function BaoCaoPage() {
   const totalShifts = reportData.reduce((sum, item) => sum + item.so_ca, 0);
 
   return (
-    <Sidebar activePath="/bao-cao">
+    <Sidebar>
       <div className="container">
         <div className="header" style={{ marginBottom: 32 }}>
           <div>
@@ -75,14 +76,16 @@ export default function BaoCaoPage() {
             </h1>
             <p style={{ color: 'var(--text-secondary)' }}>Phân tích hiệu suất và tiêu thụ năng lượng thiết bị</p>
           </div>
-          <button 
-            className="btn btn-primary" 
-            onClick={handleExport}
-            style={{ display: 'flex', alignItems: 'center', gap: 10 }}
-          >
-            <FileSpreadsheet size={18} />
-            Xuất Excel (CSV)
-          </button>
+          <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleExport}
+              style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+            >
+              <FileSpreadsheet size={18} />
+              Xuất Excel (CSV)
+            </button>
+          </PermissionGuard>
         </div>
 
         {/* Filters Bar */}

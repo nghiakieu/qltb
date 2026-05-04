@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import { api } from '@/lib/api';
 import type { NhanSu, ThietBi, CongTruong } from '@/types';
 import { CHUC_VU_LABEL } from '@/types';
@@ -134,7 +135,9 @@ export default function NhanSuPage() {
         </div>
 
         <div className="toolbar">
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Thêm nhân sự</button>
+          <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
+            <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Thêm nhân sự</button>
+          </PermissionGuard>
           <span style={{color:'var(--text-muted)', fontSize:13}}>Tổng: {personnel.length} nhân sự</span>
         </div>
 
@@ -174,23 +177,29 @@ export default function NhanSuPage() {
                           operatedTb.map(tb => (
                             <div key={tb.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
                               <span style={{display: 'flex', alignItems: 'center', gap: 6}}>{getIconNode(tb.loai, 18)}{tb.ten_tb}</span>
-                              <button onClick={() => unassignTb(tb.id)} title="Gỡ thiết bị"
-                                style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'var(--accent-red)' }}>×</button>
+                              <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI']}>
+                                <button onClick={() => unassignTb(tb.id)} title="Gỡ thiết bị"
+                                  style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'var(--accent-red)' }}>×</button>
+                              </PermissionGuard>
                             </div>
                           ))
                         ) : (
                           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>-</span>
                         )}
-                        <button onClick={() => openAssignTb(ns.id)}
-                          style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'var(--accent-blue)', textAlign:'left' }}>
-                          + Chọn thiết bị
-                        </button>
+                        <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI']}>
+                          <button onClick={() => openAssignTb(ns.id)}
+                            style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'var(--accent-blue)', textAlign:'left' }}>
+                            + Chọn thiết bị
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </td>
                     <td>
                       <div className="row-actions">
-                        <button onClick={() => handleEdit(ns)} title="Sửa">✏️</button>
-                        <button onClick={() => handleDelete(ns.id, ns.ho_ten)} title="Xóa" style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✕</button>
+                        <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
+                          <button onClick={() => handleEdit(ns)} title="Sửa">✏️</button>
+                          <button onClick={() => handleDelete(ns.id, ns.ho_ten)} title="Xóa" style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✕</button>
+                        </PermissionGuard>
                       </div>
                     </td>
                   </tr>

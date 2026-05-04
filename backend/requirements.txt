@@ -11,5 +11,9 @@ pydantic
 pydantic-settings
 python-dotenv
 
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+
 # CORS & Utils
 python-multipart

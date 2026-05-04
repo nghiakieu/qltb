@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, and_
 
 from app.db.database import get_db
+from app.dependencies.auth import get_scope_filter
 from app.models.ca_lam_viec import CaLamViec
 from app.models.thiet_bi import ThietBi
 from app.models.mui_thi_cong import MuiThiCong
@@ -33,7 +34,8 @@ def get_aggregated_report(
     den_ngay: Optional[date] = Query(None),
     cong_truong_id: Optional[str] = Query(None),
     mui_id: Optional[str] = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """Get aggregated equipment statistics for a given period and location."""
     
@@ -46,6 +48,15 @@ def get_aggregated_report(
     )
     
     filters = []
+    joined_mui = False
+    
+    if scope["mui_ids"] is not None:
+        filters.append(CaLamViec.mui_id.in_(scope["mui_ids"]))
+    elif scope["cong_truong_ids"] is not None:
+        query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+        joined_mui = True
+        filters.append(MuiThiCong.cong_truong_id.in_(scope["cong_truong_ids"]))
+        
     if tu_ngay:
         filters.append(CaLamViec.ngay_lam_viec >= tu_ngay)
     if den_ngay:
@@ -54,7 +65,9 @@ def get_aggregated_report(
         filters.append(CaLamViec.mui_id == mui_id)
     elif cong_truong_id:
         # Join MuiThiCong to filter by cong_truong_id
-        query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+        if not joined_mui:
+            query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+            joined_mui = True
         filters.append(MuiThiCong.cong_truong_id == cong_truong_id)
     
     if filters:
@@ -69,6 +82,11 @@ def get_aggregated_report(
         joinedload(ThietBi.mui_thi_cong).joinedload(MuiThiCong.cong_truong)
     )
     
+    if scope["mui_ids"] is not None:
+        tb_query = tb_query.filter(ThietBi.mui_id.in_(scope["mui_ids"]))
+    elif scope["cong_truong_ids"] is not None:
+        tb_query = tb_query.filter(ThietBi.cong_truong_id.in_(scope["cong_truong_ids"]))
+        
     if cong_truong_id:
         tb_query = tb_query.filter(ThietBi.cong_truong_id == cong_truong_id)
     if mui_id:
@@ -109,7 +127,8 @@ def get_time_series_report(
     den_ngay: Optional[date] = Query(None),
     cong_truong_id: Optional[str] = Query(None),
     mui_id: Optional[str] = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """Get aggregated statistics over time for charting."""
     
@@ -120,6 +139,15 @@ def get_time_series_report(
     )
     
     filters = []
+    joined_mui = False
+    
+    if scope["mui_ids"] is not None:
+        filters.append(CaLamViec.mui_id.in_(scope["mui_ids"]))
+    elif scope["cong_truong_ids"] is not None:
+        query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+        joined_mui = True
+        filters.append(MuiThiCong.cong_truong_id.in_(scope["cong_truong_ids"]))
+        
     if tu_ngay:
         filters.append(CaLamViec.ngay_lam_viec >= tu_ngay)
     if den_ngay:
@@ -129,7 +157,9 @@ def get_time_series_report(
     elif cong_truong_id:
         # If site filtered but not mui, need to join to mui or filter by tb that belong to that site
         # Simplest is to join MuiThiCong
-        query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+        if not joined_mui:
+            query = query.join(MuiThiCong, CaLamViec.mui_id == MuiThiCong.id)
+            joined_mui = True
         filters.append(MuiThiCong.cong_truong_id == cong_truong_id)
     
     if filters:
@@ -151,14 +181,15 @@ def export_report(
     den_ngay: Optional[date] = Query(None),
     cong_truong_id: Optional[str] = Query(None),
     mui_id: Optional[str] = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter)
 ):
     """Export report as CSV."""
     from fastapi.responses import StreamingResponse
     import io
     import csv
     
-    data = get_aggregated_report(tu_ngay, den_ngay, cong_truong_id, mui_id, db)
+    data = get_aggregated_report(tu_ngay, den_ngay, cong_truong_id, mui_id, db, scope)
     
     output = io.StringIO()
     # Add BOM for Excel

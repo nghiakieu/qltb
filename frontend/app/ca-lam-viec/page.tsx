@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense, useMemo, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { PermissionGuard } from '@/components/PermissionGuard';
 import { api } from '@/lib/api';
 import type { CaLamViec, ThietBi, NhanSu, MuiThiCong } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
@@ -247,10 +248,12 @@ function CaLamViecContent() {
           </select>
         </div>
         <div className="toolbar-right">
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            <Plus size={18} />
-            <span>Ghi nhật ký ca</span>
-          </button>
+          <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI', 'GIAM_SAT']}>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+              <Plus size={18} />
+              <span>Ghi nhật ký ca</span>
+            </button>
+          </PermissionGuard>
         </div>
       </div>
 
@@ -335,9 +338,11 @@ function CaLamViecContent() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="btn btn-sm btn-ghost" onClick={() => handleDelete(shift.id)} style={{ color: '#ef4444' }}>
-                        <Trash2 size={16} />
-                      </button>
+                      <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG', 'DIEU_PHOI']}>
+                        <button className="btn btn-sm btn-ghost" onClick={() => handleDelete(shift.id)} style={{ color: '#ef4444' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>

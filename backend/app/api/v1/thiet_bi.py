@@ -19,6 +19,7 @@ from app.schemas.schemas import (
     ThietBiResponse, ThietBiDetail,
     NhatKySuKienResponse, EquipmentHistoryResponse,
 )
+from app.dependencies.auth import get_scope_filter, get_current_user
 
 router = APIRouter()
 
@@ -53,8 +54,9 @@ def list_thiet_bi(
     cong_truong_id: Optional[str] = None,
     chua_phan_bo: Optional[bool] = None,
     db: Session = Depends(get_db),
+    scope: dict = Depends(get_scope_filter),
 ):
-    """List equipment with optional filters including site filter."""
+    """List equipment with optional filters including site filter and RBAC scope."""
     query = db.query(ThietBi).options(
         joinedload(ThietBi.lai_xe),
         joinedload(ThietBi.mui_thi_cong),
@@ -69,7 +71,39 @@ def list_thiet_bi(
         query = query.filter(ThietBi.cong_truong_id == cong_truong_id)
     if chua_phan_bo:
         query = query.filter(ThietBi.mui_id.is_(None))
+        
+    # Apply RBAC scope filters
+    if scope["cong_truong_ids"] is not None:
+        query = query.filter(ThietBi.cong_truong_id.in_(scope["cong_truong_ids"]))
+    if scope["mui_ids"] is not None:
+        query = query.filter(ThietBi.mui_id.in_(scope["mui_ids"]))
+
     return query.order_by(ThietBi.loai, ThietBi.ten_tb).all()
+
+
+@router.get("/statistics", response_model=dict)
+def get_statistics(db: Session = Depends(get_db), scope: dict = Depends(get_scope_filter)):
+    """Get equipment count statistics grouped by status and type with RBAC scope."""
+    from sqlalchemy import func
+    
+    base_query = db.query(ThietBi)
+    if scope["cong_truong_ids"] is not None:
+        base_query = base_query.filter(ThietBi.cong_truong_id.in_(scope["cong_truong_ids"]))
+    if scope["mui_ids"] is not None:
+        base_query = base_query.filter(ThietBi.mui_id.in_(scope["mui_ids"]))
+
+    # By status
+    by_status = base_query.with_entities(ThietBi.trang_thai, func.count(ThietBi.id)).group_by(ThietBi.trang_thai).all()
+    # By type
+    by_type = base_query.with_entities(ThietBi.loai, func.count(ThietBi.id)).group_by(ThietBi.loai).all()
+    # Total
+    total = base_query.with_entities(func.count(ThietBi.id)).scalar()
+    
+    return {
+        "total": total,
+        "by_status": {s: c for s, c in by_status},
+        "by_type": {t: c for t, c in by_type},
+    }
 
 
 @router.get("/{tb_id}", response_model=ThietBiDetail)
@@ -283,6 +317,9 @@ def delete_thiet_bi(tb_id: str, db: Session = Depends(get_db)):
     db.commit()
 
 
+# NOTE: /logs/all and /logs/{id} MUST be declared before /{tb_id} in router
+# But FastAPI resolves by declaration order — these are declared here but
+# the static prefix 'logs' correctly prevents matching /{tb_id}.
 @router.get("/logs/all", response_model=List[NhatKySuKienResponse])
 def list_logs(
     thiet_bi_id: Optional[str] = None,
