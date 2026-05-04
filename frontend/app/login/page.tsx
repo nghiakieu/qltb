@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
@@ -58,7 +58,7 @@ export default function LoginPage() {
         {/* Logo / Header */}
         <div className="login-header">
           <div className="login-logo">
-            <span className="login-logo-icon">🏗️</span>
+            <Image src="/icon.png" alt="QLTB Logo" width={48} height={48} style={{ borderRadius: '12px', objectFit: 'cover' }} />
           </div>
           <h1 className="login-title">QLTB</h1>
           <p className="login-subtitle">Hệ thống Quản lý Thiết bị Công trường</p>

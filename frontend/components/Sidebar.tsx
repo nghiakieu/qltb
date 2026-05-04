@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { UserMenu } from '@/components/UserMenu';
@@ -33,7 +34,9 @@ export default function Sidebar({ children }: { children: ReactNode }) {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">Q</div>
+          <div className="sidebar-logo-icon">
+            <Image src="/icon.png" alt="QLTB Logo" width={40} height={40} style={{ borderRadius: 10, objectFit: 'cover' }} />
+          </div>
           <div>
             <h1>QLTB</h1>
             <span>Quản lý thiết bị</span>

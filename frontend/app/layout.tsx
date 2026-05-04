@@ -5,6 +5,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 export const metadata: Metadata = {
   title: "QLTB - Quản Lý Thiết Bị Công Trường",
   description: "Hệ thống quản lý thiết bị cho ngành thi công cầu đường",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
