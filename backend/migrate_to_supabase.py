@@ -13,6 +13,7 @@ from app.models.nhan_su import NhanSu
 from app.models.nhat_ky_su_kien import NhatKySuKien
 from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
 from app.models.ca_lam_viec import CaLamViec
+from app.models.tai_khoan import TaiKhoan, TaiKhoanPhamVi
 
 # Load environment variables
 load_dotenv()
@@ -42,6 +43,8 @@ def migrate():
         "cong_truong",
         "mui_thi_cong",
         "nhan_su",
+        "tai_khoan",
+        "tai_khoan_pham_vi",
         "thiet_bi",
         "ca_lam_viec",
         "nhat_ky_su_kien",

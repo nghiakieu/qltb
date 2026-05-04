@@ -1,0 +1,19 @@
+# FastAPI & Server
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+psycopg2-binary
+
+# Validation & Settings
+pydantic
+pydantic-settings
+python-dotenv
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+
+# CORS & Utils
+python-multipart
