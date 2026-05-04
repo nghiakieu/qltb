@@ -1,18 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Proxy API calls to backend during development
+  // Only proxy API calls during development if explicitly needed
   async rewrites() {
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    if (!apiUrl.startsWith('http')) {
-      apiUrl = `https://${apiUrl}`;
+    // In production (Vercel), we want to use Vercel's native /api handling or vercel.json
+    // We should only use the proxy if we are running locally and want to connect to a separate backend
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost:8000/api/:path*',
+        },
+      ];
     }
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
-      },
-    ];
+    return [];
   },
 };
 
