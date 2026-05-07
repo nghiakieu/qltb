@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo, useCallback, Suspense, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
@@ -269,31 +269,31 @@ function ThietBiContent() {
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ten_tb')}>
                 Thiết bị {sortConfig.key === 'ten_tb' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('loai')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('loai')}>
                 Loại {sortConfig.key === 'loai' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ma_tb')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('ma_tb')}>
                 Mã TB {sortConfig.key === 'ma_tb' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('bien_so')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('bien_so')}>
                 Biển số {sortConfig.key === 'bien_so' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('hang_sx')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('hang_sx')}>
                 Hãng SX {sortConfig.key === 'hang_sx' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('nam_sx')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('nam_sx')}>
                 Năm SX {sortConfig.key === 'nam_sx' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('trang_thai')}>
                 Trạng thái {sortConfig.key === 'trang_thai' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('cong_truong')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('cong_truong')}>
                 Công trường {sortConfig.key === 'cong_truong' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('mui_thi_cong')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('mui_thi_cong')}>
                 Mũi thi công {sortConfig.key === 'mui_thi_cong' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('cong_suat_gio_max')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('cong_suat_gio_max')}>
                 Giờ max {sortConfig.key === 'cong_suat_gio_max' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
               <th></th>
@@ -315,11 +315,11 @@ function ThietBiContent() {
                     {tb.ten_tb}
                   </div>
                 </td>
-                <td style={{ color: 'var(--text-secondary)' }}>{getLabel(tb.loai)}</td>
-                <td><span className="tb-card-bien-so" style={{fontFamily:'var(--font-mono)'}}>{tb.ma_tb || '-'}</span></td>
-                <td><span style={{fontSize: 12, color: 'var(--text-muted)'}}>{tb.bien_so || '-'}</span></td>
-                <td style={{ color: 'var(--text-secondary)' }}>{tb.hang_sx || '-'}</td>
-                <td style={{ color: 'var(--text-secondary)' }}>{tb.nam_sx || '-'}</td>
+                <td className="hide-mobile" style={{ color: 'var(--text-secondary)' }}>{getLabel(tb.loai)}</td>
+                <td className="hide-mobile"><span className="tb-card-bien-so" style={{fontFamily:'var(--font-mono)'}}>{tb.ma_tb || '-'}</span></td>
+                <td className="hide-mobile"><span style={{fontSize: 12, color: 'var(--text-muted)'}}>{tb.bien_so || '-'}</span></td>
+                <td className="hide-mobile" style={{ color: 'var(--text-secondary)' }}>{tb.hang_sx || '-'}</td>
+                <td className="hide-mobile" style={{ color: 'var(--text-secondary)' }}>{tb.nam_sx || '-'}</td>
                 <td>
                   <select
                     className={`form-select badge badge-${tb.trang_thai.toLowerCase().replace('_', '-')}`}
@@ -346,9 +346,9 @@ function ThietBiContent() {
                     ))}
                   </select>
                 </td>
-                <td style={{ color: 'var(--accent-cyan)', fontSize: 13 }}>{getSiteName(tb.mui_id)}</td>
-                <td style={{ fontSize: 13 }}>{getMuiName(tb.mui_id)}</td>
-                <td style={{ textAlign: 'center' }}>{tb.cong_suat_gio_max ? `${tb.cong_suat_gio_max}h` : '-'}</td>
+                <td className="hide-mobile" style={{ color: 'var(--accent-cyan)', fontSize: 13 }}>{getSiteName(tb.mui_id)}</td>
+                <td className="hide-mobile" style={{ fontSize: 13 }}>{getMuiName(tb.mui_id)}</td>
+                <td className="hide-mobile" style={{ textAlign: 'center' }}>{tb.cong_suat_gio_max ? `${tb.cong_suat_gio_max}h` : '-'}</td>
                 <td>
                   <div className="row-actions">
                     <PermissionGuard allowedRoles={['ADMIN']}>

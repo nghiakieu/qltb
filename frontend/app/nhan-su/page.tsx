@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -147,10 +147,10 @@ export default function NhanSuPage() {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Ho ten</th>
-                <th>Chuc vu</th>
-                <th>SDT</th>
-                <th>Công trường</th>
+                <th>Họ tên</th>
+                <th>Chức vụ</th>
+                <th className="hide-mobile">SĐT</th>
+                <th className="hide-mobile">Công trường</th>
                 <th>Thiết bị vận hành</th>
                 <th></th>
               </tr>
@@ -165,10 +165,10 @@ export default function NhanSuPage() {
                     <td>
                       <span className="badge badge-bao-tri">{CHUC_VU_LABEL[ns.chuc_vu] || ns.chuc_vu}</span>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+                    <td className="hide-mobile" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
                       {ns.so_dien_thoai || '-'}
                     </td>
-                    <td style={{ color: 'var(--accent-cyan)', fontSize: 13 }}>
+                    <td className="hide-mobile" style={{ color: 'var(--accent-cyan)', fontSize: 13 }}>
                       {getSiteName(ns.cong_truong_id)}
                     </td>
                     <td>

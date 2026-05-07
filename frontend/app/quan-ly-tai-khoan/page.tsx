@@ -355,9 +355,9 @@ function TaiKhoanPageContent() {
               <tr>
                 <th>Người dùng</th>
                 <th>Vai trò</th>
-                <th>Trạng thái</th>
-                <th>Đăng nhập lần cuối</th>
-                <th>Ngày tạo</th>
+                <th className="hide-mobile">Trạng thái</th>
+                <th className="hide-mobile">Đăng nhập</th>
+                <th className="hide-mobile">Ngày tạo</th>
                 <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
@@ -374,7 +374,7 @@ function TaiKhoanPageContent() {
                       <div>
                         <div className="tk-ho-ten">{u.ho_ten} {u.id === me?.id && <span className="tk-me-badge">• Bạn</span>}</div>
                         <div className="tk-username">@{u.username}</div>
-                        {u.email && <div className="tk-email">{u.email}</div>}
+                        {u.email && <div className="tk-email hide-mobile">{u.email}</div>}
                       </div>
                     </div>
                   </td>
@@ -383,13 +383,13 @@ function TaiKhoanPageContent() {
                       {VAI_TRO_LABEL[u.vai_tro] || u.vai_tro}
                     </span>
                   </td>
-                  <td>
+                  <td className="hide-mobile">
                     <span className={`tk-status ${u.is_active ? 'tk-status-active' : 'tk-status-locked'}`}>
                       {u.is_active ? '🟢 Hoạt động' : '🔴 Bị khóa'}
                     </span>
                   </td>
-                  <td className="tk-date">{fmtDate(u.last_login)}</td>
-                  <td className="tk-date">{fmtDate(u.created_at)}</td>
+                  <td className="tk-date hide-mobile">{fmtDate(u.last_login)}</td>
+                  <td className="tk-date hide-mobile">{fmtDate(u.created_at)}</td>
                   <td>
                     <div className="tk-actions">
                       <button className="btn-scope" title="Phân quyền" onClick={() => setScopeUser(u)}>🔐</button>
@@ -533,6 +533,15 @@ function TaiKhoanPageContent() {
           z-index: 10;
         }
         .btn-show-pass:hover { color: #3b82f6; }
+
+        @media (max-width: 768px) {
+          .tk-page { padding: 16px; }
+          .tk-header { flex-direction: column; align-items: flex-start; }
+          .btn-new { width: 100%; }
+          .tk-search { width: 100%; }
+          .tk-filter-role { width: 100%; }
+          .tk-actions { flex-wrap: wrap; }
+        }
 
         /* Guard loading */
         .rg-loading { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #64748b; font-family: Inter, sans-serif; }

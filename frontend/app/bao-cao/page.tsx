@@ -144,7 +144,7 @@ export default function BaoCaoPage() {
         </div>
 
         {/* Quick Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginBottom: 32 }}>
+        <div className="stats-grid" style={{ marginBottom: 32 }}>
           <div className="card" style={{ borderLeft: '4px solid var(--accent-blue)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ padding: 12, borderRadius: 12, background: 'rgba(0, 112, 243, 0.1)', color: 'var(--accent-blue)' }}>
@@ -181,7 +181,7 @@ export default function BaoCaoPage() {
         </div>
 
         {/* Charts Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 32 }}>
+        <div className="charts-grid" style={{ marginBottom: 32 }}>
           <div className="card">
             <h3 style={{ fontSize: 18, marginBottom: 24 }}>Biểu đồ hoạt động theo thời gian</h3>
             <div style={{ width: '100%', height: 300 }}>
@@ -252,11 +252,11 @@ export default function BaoCaoPage() {
               <thead>
                 <tr style={{ textAlign: 'left', background: 'rgba(255,255,255,0.02)' }}>
                   <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>Thiết bị</th>
-                  <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>Loại</th>
+                  <th className="hide-mobile" style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>Loại</th>
                   <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>Mũi / Công trường</th>
                   <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Giờ máy</th>
-                  <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Nhiên liệu (L)</th>
-                  <th style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Số ca</th>
+                  <th className="hide-mobile" style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Nhiên liệu</th>
+                  <th className="hide-mobile" style={{ padding: '16px 24px', fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Ca</th>
                 </tr>
               </thead>
               <tbody>
@@ -266,7 +266,7 @@ export default function BaoCaoPage() {
                       <div style={{ fontWeight: 600 }}>{item.ten_tb}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.ma_tb}</div>
                     </td>
-                    <td style={{ padding: '16px 24px', fontSize: 14 }}>{item.loai}</td>
+                    <td className="hide-mobile" style={{ padding: '16px 24px', fontSize: 14 }}>{item.loai}</td>
                     <td style={{ padding: '16px 24px' }}>
                       <div style={{ fontSize: 14 }}>{item.mui_hien_tai}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.ct_hien_tai}</div>
@@ -274,10 +274,10 @@ export default function BaoCaoPage() {
                     <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-blue)' }}>
                       {item.tong_gio.toFixed(1)}
                     </td>
-                    <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-yellow)' }}>
+                    <td className="hide-mobile" style={{ padding: '16px 24px', textAlign: 'right', fontWeight: 700, color: 'var(--accent-yellow)' }}>
                       {item.tong_nhien_lieu.toLocaleString()}
                     </td>
-                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                    <td className="hide-mobile" style={{ padding: '16px 24px', textAlign: 'right' }}>
                       <span style={{ padding: '4px 10px', borderRadius: 20, background: 'var(--bg-body)', fontSize: 12, fontWeight: 600 }}>
                         {item.so_ca}
                       </span>
@@ -339,6 +339,36 @@ export default function BaoCaoPage() {
         }
         table tr:hover {
           background: rgba(255,255,255,0.01);
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+        }
+
+        .charts-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+          .container {
+            padding: 16px;
+          }
+          .header {
+            flex-direction: column;
+            gap: 16px;
+          }
+          .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          .charts-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
         }
       `}</style>
     </Sidebar>

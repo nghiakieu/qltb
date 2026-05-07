@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense, useMemo, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -265,20 +265,20 @@ function CaLamViecContent() {
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('thiet_bi')}>
                 Thiết bị {sortConfig.key === 'thiet_bi' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('nhan_su')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('nhan_su')}>
                 Vận hành {sortConfig.key === 'nhan_su' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th style={{ cursor: 'pointer' }} onClick={() => requestSort('mui')}>
+              <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('mui')}>
                 Mũi thi công {sortConfig.key === 'mui' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ca_so')}>
                 Ca {sortConfig.key === 'ca_so' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th>Thời gian</th>
+              <th className="hide-mobile">Thời gian</th>
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('gio_hoat_dong_thuc_te')}>
                 Giờ máy {sortConfig.key === 'gio_hoat_dong_thuc_te' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
-              <th>Đồng hồ (Đầu/Cuối)</th>
+              <th className="hide-mobile">Đồng hồ (Đầu/Cuối)</th>
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('xang_dau_cap')}>
                 Nhiên liệu {sortConfig.key === 'xang_dau_cap' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
@@ -311,26 +311,26 @@ function CaLamViecContent() {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td className="hide-mobile">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <User size={14} color="#64748b" />
                       <span style={{ fontSize: 13 }}>{shift.nhan_su?.ho_ten || 'N/A'}</span>
                     </div>
                   </td>
-                  <td>
+                  <td className="hide-mobile">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <MapPin size={14} color="#64748b" />
                       <span style={{ fontSize: 13 }}>{shift.mui_thi_cong?.ten_mui || '-'}</span>
                     </div>
                   </td>
                   <td><span className="badge-ca">Ca {shift.ca_so}</span></td>
-                  <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  <td className="hide-mobile" style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                     {shift.gio_bat_dau?.substring(0, 5)} - {shift.gio_ket_thuc?.substring(0, 5)}
                   </td>
                   <td style={{ fontWeight: 600, color: 'var(--accent-blue)' }}>
                     {shift.gio_hoat_dong_thuc_te}h
                   </td>
-                  <td style={{ fontSize: 12 }}>
+                  <td className="hide-mobile" style={{ fontSize: 12 }}>
                     {shift.chi_so_dong_ho_dau || 0} → {shift.chi_so_dong_ho_cuoi || 0}
                   </td>
                   <td style={{ fontWeight: 500, color: '#10b981' }}>

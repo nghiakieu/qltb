@@ -155,9 +155,9 @@ function DashboardContent() {
                       <th style={{textAlign:'center'}}>Tổng TB</th>
                       <th style={{textAlign:'center'}}>Hoạt động</th>
                       <th style={{textAlign:'center'}}>Chờ</th>
-                      <th style={{textAlign:'center'}}>Bảo trì</th>
-                      <th style={{textAlign:'center'}}>Hỏng</th>
-                      <th style={{textAlign:'center'}}>Mũi</th>
+                      <th className="hide-mobile" style={{textAlign:'center'}}>Bảo trì</th>
+                      <th className="hide-mobile" style={{textAlign:'center'}}>Hỏng</th>
+                      <th className="hide-mobile" style={{textAlign:'center'}}>Mũi</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -168,9 +168,9 @@ function DashboardContent() {
                         <td style={{textAlign:'center', fontWeight:700}}>{ss.tong_thiet_bi}</td>
                         <td style={{textAlign:'center', color:'var(--status-hoat-dong)'}}>{ss.hoat_dong}</td>
                         <td style={{textAlign:'center', color:'var(--status-cho)'}}>{ss.cho}</td>
-                        <td style={{textAlign:'center', color:'var(--status-bao-tri)'}}>{ss.bao_tri}</td>
-                        <td style={{textAlign:'center', color:'var(--status-hong)'}}>{ss.hong}</td>
-                        <td style={{textAlign:'center'}}>{ss.tong_mui}</td>
+                        <td className="hide-mobile" style={{textAlign:'center', color:'var(--status-bao-tri)'}}>{ss.bao_tri}</td>
+                        <td className="hide-mobile" style={{textAlign:'center', color:'var(--status-hong)'}}>{ss.hong}</td>
+                        <td className="hide-mobile" style={{textAlign:'center'}}>{ss.tong_mui}</td>
                         <td>
                           <Link href={`/cong-truong/${ss.cong_truong_id}`}>
                             <button className="btn btn-ghost btn-sm">Xem Kanban →</button>

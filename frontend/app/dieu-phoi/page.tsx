@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -215,12 +215,12 @@ function DieuPhoiContent() {
         <div className="table-wrapper"><table className="data-table">
           <thead>
             <tr>
-              <th>Thời gian</th>
+              <th className="hide-mobile">Thời gian</th>
               <th>Thiết bị</th>
               <th>Lộ trình</th>
-              <th>Lý do</th>
+              <th className="hide-mobile">Lý do</th>
               <th>Trạng thái</th>
-              <th>Người yêu cầu</th>
+              <th className="hide-mobile">Người yêu cầu</th>
               <th style={{ textAlign: 'right' }}>Thao tác</th>
             </tr>
           </thead>
@@ -237,7 +237,7 @@ function DieuPhoiContent() {
             ) : (
               filtered.map((req) => (
                 <tr key={req.id}>
-                  <td style={{ whiteSpace: 'nowrap', fontSize: 13, color: 'var(--text-muted)' }}>
+                  <td className="hide-mobile" style={{ whiteSpace: 'nowrap', fontSize: 13, color: 'var(--text-muted)' }}>
                     {req.created_at ? new Date(req.created_at).toLocaleString('vi-VN', {
                       day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                     }) : '-'}
@@ -260,7 +260,7 @@ function DieuPhoiContent() {
                       {getMuiFullInfo(req.den_mui_id)}
                     </div>
                   </td>
-                  <td>
+                  <td className="hide-mobile">
                     <div style={{ maxWidth: 200, fontSize: 13, color: 'var(--text-slate-600)' }} className="text-truncate">
                       {req.ly_do || <span style={{ fontStyle: 'italic', color: '#ccc' }}>Không có lý do</span>}
                     </div>
@@ -274,7 +274,7 @@ function DieuPhoiContent() {
                       {TRANG_THAI_YEU_CAU_LABEL[req.trang_thai_yeu_cau]}
                     </span>
                   </td>
-                  <td style={{ fontSize: 13 }}>
+                  <td className="hide-mobile" style={{ fontSize: 13 }}>
                     {req.nguoi_yeu_cau_id || 'Hệ thống'}
                   </td>
                   <td>

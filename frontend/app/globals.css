@@ -354,6 +354,17 @@ a {
   background: rgba(255, 255, 255, 0.01);
 }
 
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .data-table th, .data-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+}
+
 /* Badges */
 .badge {
   padding: 4px 12px;
@@ -419,6 +430,8 @@ a {
   width: 100%;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scroll-snap-type: x mandatory; /* Native swiping feel on mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 .kanban-container::-webkit-scrollbar {
@@ -443,6 +456,19 @@ a {
   flex-shrink: 0;
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  scroll-snap-align: center; /* Snap to center of screen on mobile */
+}
+
+@media (max-width: 768px) {
+  .kanban-column {
+    min-width: 85vw; /* Show partial next column to hint at swiping */
+    width: 85vw;
+  }
+  .kanban-container {
+    gap: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
 
 .kanban-column-header {
@@ -482,15 +508,15 @@ a {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 36px; /* Increased from 28px for better touch */
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 14px;
+  font-size: 16px;
   padding: 0;
 }
 
@@ -526,14 +552,14 @@ a {
 .kanban-gear-menu button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 12px 16px; /* Larger padding for mobile touch */
   background: transparent;
   border: none;
   border-radius: 8px;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s;
@@ -649,11 +675,13 @@ a {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.tb-card-horizontal:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent-blue);
-  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
-  z-index: 10;
+@media (hover: hover) {
+  .tb-card-horizontal:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+  }
 }
 
 .tb-card-horizontal.dragging {
@@ -755,17 +783,52 @@ a {
   animation: fadeIn 0.3s ease;
 }
 
-.modal {
-  background: var(--bg-card);
+.modal-content {
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 24px;
   padding: 32px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.3s ease;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile Bottom Sheet Modal */
+@media (max-width: 768px) {
+  .modal-overlay, .modal-backdrop {
+    align-items: flex-end !important;
+    justify-content: center;
+    padding: 0 !important;
+  }
+  
+  .modal-content, .modal-box, .modal {
+    border-radius: 32px 32px 0 0 !important;
+    padding: 24px 20px 40px 20px !important;
+    animation: sheet-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-bottom: none !important;
+    margin: 0 !important;
+  }
+
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Handle for visual cue */
+  .modal-content::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
 }
 
 .form-group {

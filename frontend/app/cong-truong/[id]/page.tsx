@@ -578,16 +578,16 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                     <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ten_tb')}>
                       Thiết bị {sortConfig.key === 'ten_tb' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                     </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => requestSort('loai')}>
+                    <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('loai')}>
                       Loại {sortConfig.key === 'loai' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                     </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ma_tb')}>
+                    <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('ma_tb')}>
                       Mã thiết bị {sortConfig.key === 'ma_tb' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                     </th>
                     <th style={{ cursor: 'pointer' }} onClick={() => requestSort('mui_thi_cong')}>
                       Mũi / Vị trí {sortConfig.key === 'mui_thi_cong' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                     </th>
-                    <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ngay_den_ct')}>
+                    <th className="hide-mobile" style={{ cursor: 'pointer' }} onClick={() => requestSort('ngay_den_ct')}>
                       Ngày đến CT {sortConfig.key === 'ngay_den_ct' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
                     </th>
                     <th style={{ cursor: 'pointer' }} onClick={() => requestSort('trang_thai')}>
@@ -613,12 +613,12 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           </div>
                         </div>
                       </td>
-                      <td style={{color:'var(--text-secondary)'}}>{tb.loai}</td>
-                      <td><span style={{fontSize: 12, color: 'var(--text-muted)'}}>{tb.bien_so || '-'}</span></td>
+                      <td className="hide-mobile" style={{color:'var(--text-secondary)'}}>{tb.loai}</td>
+                      <td className="hide-mobile"><span style={{fontSize: 12, color: 'var(--text-muted)'}}>{tb.bien_so || '-'}</span></td>
                       <td>
                         {muiList.find(m => m.id === tb.mui_id)?.ten_mui || <span className="badge badge-cho" style={{fontSize:11}}>Đợi phân bổ</span>}
                       </td>
-                      <td>{formatDate(tb.ngay_den_ct)}</td>
+                      <td className="hide-mobile">{formatDate(tb.ngay_den_ct)}</td>
                       <td>
                         <select
                           className={`form-select badge badge-${tb.trang_thai.toLowerCase().replace('_', '-')}`}
@@ -668,10 +668,10 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                   <tr>
                     <th>Thời gian</th>
                     <th>Thiết bị</th>
-                    <th>Loại sự kiện</th>
+                    <th className="hide-mobile">Loại sự kiện</th>
                     <th>Chi tiết điều chuyển</th>
-                    <th>Ghi chú</th>
-                    <th style={{width:50}}></th>
+                    <th className="hide-mobile">Ghi chú</th>
+                    <th className="hide-mobile" style={{width:50}}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -689,7 +689,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <span className={`badge ${log.loai_su_kien === 'DIEU_CHUYEN' || log.loai_su_kien === 'PHAN_BO' ? 'badge-active' : 'badge-idle'}`}>
                           {log.loai_su_kien === 'DIEU_CHUYEN' ? 'Điều chuyển CT' : 
                            log.loai_su_kien === 'PHAN_BO' ? 'Phân bổ mũi' : 'Thay đổi trạng thái'}
@@ -717,7 +717,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           <span style={{color:'var(--text-muted)'}}>-</span>
                         )}
                       </td>
-                      <td style={{fontSize:13}}>
+                      <td className="hide-mobile" style={{fontSize:13}}>
                         {editLogId === log.id ? (
                           <div style={{display:'flex', gap:4}}>
                             <input 
@@ -767,6 +767,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                           </div>
                         )}
                       </td>
+                      <td className="hide-mobile"></td>
                     </tr>
                   ))}
                   {logs.length === 0 && (
