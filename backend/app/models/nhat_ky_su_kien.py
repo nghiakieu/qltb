@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base, generate_uuid
-from app.core.datetime_utils import now_ict
+from app.core.datetime_utils import now_ict_naive
 
 
 class NhatKySuKien(Base):
@@ -28,7 +28,7 @@ class NhatKySuKien(Base):
     )
     thoi_gian = Column(
         DateTime,
-        default=now_ict,
+        default=now_ict_naive,
         nullable=False,
     )
     nguoi_thuc_hien_id = Column(

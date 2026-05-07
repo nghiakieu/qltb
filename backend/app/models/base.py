@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import DeclarativeBase
 
 
-from app.core.datetime_utils import now_ict
+from app.core.datetime_utils import now_ict_naive
 
 
 class Base(DeclarativeBase):
@@ -18,13 +18,13 @@ class TimestampMixin:
     """Mixin that adds created_at and updated_at timestamps."""
     created_at = Column(
         DateTime,
-        default=now_ict,
+        default=now_ict_naive,
         nullable=False,
     )
     updated_at = Column(
         DateTime,
-        default=now_ict,
-        onupdate=now_ict,
+        default=now_ict_naive,
+        onupdate=now_ict_naive,
         nullable=False,
     )
 
