@@ -457,10 +457,13 @@ a {
   font-size: 15px;
   font-weight: 700;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
 }
 
 .kanban-count {
@@ -470,9 +473,86 @@ a {
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 700;
-  margin-left: 8px;
+  flex-shrink: 0;
+  margin-left: 0;
 }
 
+/* --- Gear button --- */
+.kanban-gear-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+  padding: 0;
+}
+
+.kanban-gear-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent-blue);
+  transform: rotate(30deg);
+}
+
+/* --- Gear dropdown menu --- */
+.kanban-gear-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+  min-width: 170px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: menu-pop 0.12s ease;
+}
+
+@keyframes menu-pop {
+  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.kanban-gear-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: left;
+}
+
+.kanban-gear-menu button:hover {
+  background: rgba(255,255,255,0.07);
+}
+
+.kanban-gear-menu button.danger {
+  color: var(--danger);
+}
+
+.kanban-gear-menu button.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Keep old actions class for "Chưa phân bổ" column */
 .kanban-column-actions {
   display: flex;
   gap: 4px;
@@ -498,6 +578,7 @@ a {
   border-color: var(--accent-blue);
   transform: translateY(-1px);
 }
+
 
 .kanban-column-body {
   flex: 1;
@@ -576,8 +657,12 @@ a {
 }
 
 .tb-card-horizontal.dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
+  opacity: 0.45;
+  transform: scale(0.96) rotate(1deg);
+  will-change: transform;
+  pointer-events: none;
+  transition: none; /* disable transition while dragging for smoothness */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 .tb-card-horizontal::before {

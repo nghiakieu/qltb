@@ -41,6 +41,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [selectedTbIds, setSelectedTbIds] = useState<string[]>([]);
   const [movementNote, setMovementNote] = useState('');
+  const [openMenuMuiId, setOpenMenuMuiId] = useState<string | null>(null);
 
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' | null }>({
     key: null,
@@ -128,34 +129,33 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     e.preventDefault();
     const tbId = e.dataTransfer.getData('text/plain') || dragTbId;
     setDropTarget(null);
+    setDragTbId(null);
     if (!tbId) return;
 
     const targetMuiId = muiId === '__unassigned' ? null : muiId;
     
-    // Find if the equipment is actually changing position
+    // Skip if no change
     const targetTb = allTb.find(t => t.id === tbId);
     if (targetTb?.mui_id === targetMuiId) return;
 
-    // Optimistic UI Update
+    // 1. Optimistic UI — update local state immediately, no revalidation
     const oldTb = [...allTb];
     const newTb = allTb.map(tb => 
       tb.id === tbId ? { ...tb, mui_id: targetMuiId } : tb
     );
-    
-    // 1. Update UI immediately
-    mutateTb(newTb, false);
+    mutateTb(newTb, false); // false = no revalidate, keep UI stable
 
     try {
-      // 2. Perform API call in background
+      // 2. Fire API in background (no await blocking render)
       await api.phanBoThietBi(tbId, targetMuiId, ctId);
       
-      // 3. Silently revalidate logs and TB list to sync with server
-      // We don't need to block UI for this
-      mutateLogs();
-      // Revalidate TB list but keep the current local state if possible
-      mutateTb(); 
+      // 3. Silently revalidate after delay so UI doesn't jank
+      setTimeout(() => {
+        mutateTb();    // sync TB list with server
+        mutateLogs();  // sync logs
+      }, 1500);
     } catch (err) {
-      // 4. Rollback only on error
+      // 4. Rollback on error
       mutateTb(oldTb, false);
       alert('Lỗi phân bổ: ' + (err as Error).message);
     }
@@ -477,18 +477,53 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
 
               {muiList.map(mui => {
                 const tbInMui = allTb.filter(tb => tb.mui_id === mui.id);
+                const isMenuOpen = openMenuMuiId === mui.id;
                 return (
                   <div className="kanban-column" key={mui.id}>
                     <div className="kanban-column-header">
-                      <h4 title={mui.ten_mui} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-blue)' }}></span>
-                        {mui.ten_mui} 
-                        <span className="kanban-count">{tbInMui.length}</span>
+                      <h4 title={mui.ten_mui} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }}></span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{mui.ten_mui}</span>
                       </h4>
-                      <div className="kanban-column-actions">
-                        <button onClick={() => openAddTbModal(mui.id)} title="Phân bổ thiết bị">+</button>
-                        <button onClick={() => setEditMui({id: mui.id, name: mui.ten_mui})} title="Sửa tên mũi">✏️</button>
-                        <button onClick={() => handleDeleteMui(mui.id, mui.ten_mui)} title="Xóa mũi" style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✕</button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        {/* Equipment count badge */}
+                        <span className="kanban-count">{tbInMui.length}</span>
+                        {/* Gear settings button with dropdown */}
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            className="kanban-gear-btn"
+                            title="Tùy chọn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuMuiId(isMenuOpen ? null : mui.id);
+                            }}
+                          >
+                            ⚙️
+                          </button>
+                          {isMenuOpen && (
+                            <>
+                              {/* Backdrop to close menu */}
+                              <div
+                                style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                                onClick={() => setOpenMenuMuiId(null)}
+                              />
+                              <div className="kanban-gear-menu">
+                                <button onClick={() => { openAddTbModal(mui.id); setOpenMenuMuiId(null); }}>
+                                  <span>➕</span> Thêm thiết bị
+                                </button>
+                                <button onClick={() => { setEditMui({id: mui.id, name: mui.ten_mui}); setOpenMenuMuiId(null); }}>
+                                  <span>✏️</span> Đổi tên mũi
+                                </button>
+                                <button
+                                  className="danger"
+                                  onClick={() => { handleDeleteMui(mui.id, mui.ten_mui); setOpenMenuMuiId(null); }}
+                                >
+                                  <span>🗑️</span> Xóa mũi
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div
