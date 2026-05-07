@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useCallback, Suspense, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
@@ -262,7 +262,7 @@ function ThietBiContent() {
 
       {/* Table */}
       <div className="card scroll-y" style={{ padding: 0 }}>
-        <table className="data-table">
+        <div className="table-wrapper"><table className="data-table">
           <thead>
             <tr>
               <th style={{ width: 50 }}>#</th>
@@ -359,7 +359,7 @@ function ThietBiContent() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Create Modal */}

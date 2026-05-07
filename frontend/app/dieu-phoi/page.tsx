@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -212,7 +212,7 @@ function DieuPhoiContent() {
 
       {/* Main Table */}
       <div className="card scroll-y" style={{ padding: 0, flex: 1 }}>
-        <table className="data-table">
+        <div className="table-wrapper"><table className="data-table">
           <thead>
             <tr>
               <th>Thời gian</th>
@@ -329,7 +329,7 @@ function DieuPhoiContent() {
               ))
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Create Request Modal */}

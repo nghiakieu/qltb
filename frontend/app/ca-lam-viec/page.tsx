@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense, useMemo, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -259,7 +259,7 @@ function CaLamViecContent() {
 
       {/* Table */}
       <div className="card scroll-y" style={{ padding: 0, flex: 1 }}>
-        <table className="data-table">
+        <div className="table-wrapper"><table className="data-table">
           <thead>
             <tr>
               <th style={{ cursor: 'pointer' }} onClick={() => requestSort('thiet_bi')}>
@@ -349,7 +349,7 @@ function CaLamViecContent() {
               ))
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {/* Create Modal */}

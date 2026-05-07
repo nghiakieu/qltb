@@ -68,7 +68,7 @@ function DashboardContent() {
 
         {/* Quick Notifications */}
         {stats && stats.cho_duyet_dieu_phoi > 0 && (
-          <div className="animate-slide-in" style={{ 
+          <div className="notification-banner animate-slide-in" style={{ 
             background: 'rgba(245, 158, 11, 0.1)', 
             border: '1px solid rgba(245, 158, 11, 0.3)',
             borderRadius: 12,
@@ -146,39 +146,41 @@ function DashboardContent() {
         {stats && stats.per_site && stats.per_site.length > 0 && (
           <div style={{ marginBottom: 32 }}>
             <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Thống kê theo công trường</h3>
-            <div className="card" style={{ overflow: 'auto', padding: 0 }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Công trường</th>
-                    <th style={{textAlign:'center'}}>Tổng TB</th>
-                    <th style={{textAlign:'center'}}>Hoạt động</th>
-                    <th style={{textAlign:'center'}}>Chờ</th>
-                    <th style={{textAlign:'center'}}>Bảo trì</th>
-                    <th style={{textAlign:'center'}}>Hỏng</th>
-                    <th style={{textAlign:'center'}}>Mũi</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.per_site.map((ss: SiteStats) => (
-                    <tr key={ss.cong_truong_id}>
-                      <td style={{fontWeight: 500}}>{ss.ten_ct}</td>
-                      <td style={{textAlign:'center', fontWeight:700}}>{ss.tong_thiet_bi}</td>
-                      <td style={{textAlign:'center', color:'var(--status-hoat-dong)'}}>{ss.hoat_dong}</td>
-                      <td style={{textAlign:'center', color:'var(--status-cho)'}}>{ss.cho}</td>
-                      <td style={{textAlign:'center', color:'var(--status-bao-tri)'}}>{ss.bao_tri}</td>
-                      <td style={{textAlign:'center', color:'var(--status-hong)'}}>{ss.hong}</td>
-                      <td style={{textAlign:'center'}}>{ss.tong_mui}</td>
-                      <td>
-                        <Link href={`/cong-truong/${ss.cong_truong_id}`}>
-                          <button className="btn btn-ghost btn-sm">Xem Kanban →</button>
-                        </Link>
-                      </td>
+            <div className="card" style={{ padding: 0 }}>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Công trường</th>
+                      <th style={{textAlign:'center'}}>Tổng TB</th>
+                      <th style={{textAlign:'center'}}>Hoạt động</th>
+                      <th style={{textAlign:'center'}}>Chờ</th>
+                      <th style={{textAlign:'center'}}>Bảo trì</th>
+                      <th style={{textAlign:'center'}}>Hỏng</th>
+                      <th style={{textAlign:'center'}}>Mũi</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {stats.per_site.map((ss: SiteStats) => (
+                      <tr key={ss.cong_truong_id}>
+                        <td style={{fontWeight: 500}}>{ss.ten_ct}</td>
+                        <td style={{textAlign:'center', fontWeight:700}}>{ss.tong_thiet_bi}</td>
+                        <td style={{textAlign:'center', color:'var(--status-hoat-dong)'}}>{ss.hoat_dong}</td>
+                        <td style={{textAlign:'center', color:'var(--status-cho)'}}>{ss.cho}</td>
+                        <td style={{textAlign:'center', color:'var(--status-bao-tri)'}}>{ss.bao_tri}</td>
+                        <td style={{textAlign:'center', color:'var(--status-hong)'}}>{ss.hong}</td>
+                        <td style={{textAlign:'center'}}>{ss.tong_mui}</td>
+                        <td>
+                          <Link href={`/cong-truong/${ss.cong_truong_id}`}>
+                            <button className="btn btn-ghost btn-sm">Xem Kanban →</button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

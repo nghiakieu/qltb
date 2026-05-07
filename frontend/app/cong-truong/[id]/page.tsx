@@ -528,7 +528,8 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
         {tab === 'list' && (
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="card scroll-y" style={{ padding: 0, flex: 1 }}>
-              <table className="data-table">
+              <div className="table-wrapper">
+                <table className="data-table">
                 <thead>
                   <tr>
                     <th style={{ cursor: 'pointer' }} onClick={() => requestSort('ten_tb')}>
@@ -609,7 +610,8 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                     </tr>
                   )}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -617,7 +619,8 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
         {tab === 'logs' && (
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="card scroll-y" style={{ padding: 0, height: '100%', flex: 1 }}>
-              <table className="data-table">
+              <div className="table-wrapper">
+                <table className="data-table">
                 <thead>
                   <tr>
                     <th>Thời gian</th>
@@ -729,7 +732,8 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
                     </tr>
                   )}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           </div>
         )}

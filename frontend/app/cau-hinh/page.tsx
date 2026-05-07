@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
@@ -81,7 +81,7 @@ export default function CauHinhPage() {
         </div>
 
         <div className="card scroll-y" style={{ padding: 0, flex: 1, height: '100%' }}>
-          <table className="data-table">
+          <div className="table-wrapper"><table className="data-table">
             <thead>
               <tr>
                 <th style={{ width: 150 }}>Mã loại</th>
@@ -190,7 +190,7 @@ export default function CauHinhPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </Sidebar>

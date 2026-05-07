@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
@@ -143,7 +143,7 @@ export default function NhanSuPage() {
 
         {/* Table */}
         <div className="card" style={{ padding: 0, overflow: 'auto', flex: 1, minHeight: 0 }}>
-          <table className="data-table">
+          <div className="table-wrapper"><table className="data-table">
             <thead>
               <tr>
                 <th>#</th>
@@ -206,7 +206,7 @@ export default function NhanSuPage() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         {/* Create/Edit Modal */}
