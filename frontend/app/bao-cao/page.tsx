@@ -13,6 +13,7 @@ import {
   TrendingUp, Fuel, Clock, MapPin 
 } from 'lucide-react';
 import { CongTruong, MuiThiCong } from '@/types';
+import { formatVNDate, getVNISODate, getPastVNISODate } from '@/lib/utils';
 
 export default function BaoCaoPage() {
   const [loading, setLoading] = useState(true);
@@ -23,8 +24,8 @@ export default function BaoCaoPage() {
   
   // Filters
   const [filters, setFilters] = useState({
-    tu_ngay: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
-    den_ngay: new Date().toISOString().split('T')[0],
+    tu_ngay: getPastVNISODate(30),
+    den_ngay: getVNISODate(),
     cong_truong_id: '',
     mui_id: ''
   });
@@ -192,7 +193,7 @@ export default function BaoCaoPage() {
                     dataKey="ngay" 
                     stroke="var(--text-secondary)" 
                     fontSize={12}
-                    tickFormatter={(val) => new Date(val).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                    tickFormatter={(val) => formatVNDate(val).split('/20')[0]} // Show only dd/mm
                   />
                   <YAxis yAxisId="left" stroke="var(--accent-blue)" fontSize={12} />
                   <YAxis yAxisId="right" orientation="right" stroke="var(--accent-yellow)" fontSize={12} />

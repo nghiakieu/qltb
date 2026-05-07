@@ -18,8 +18,10 @@ import {
   Trash2,
   AlertTriangle,
   ChevronRight,
-  MapPin
+  MapPin,
+  Eye
 } from 'lucide-react';
+import { formatVNDateTime } from '@/lib/utils';
 import { PermissionGuard } from '@/components/PermissionGuard';
 
 function DieuPhoiContent() {
@@ -238,9 +240,7 @@ function DieuPhoiContent() {
               filtered.map((req) => (
                 <tr key={req.id}>
                   <td className="hide-mobile" style={{ whiteSpace: 'nowrap', fontSize: 13, color: 'var(--text-muted)' }}>
-                    {req.created_at ? new Date(req.created_at).toLocaleString('vi-VN', {
-                      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                    }) : '-'}
+                    {formatVNDateTime(req.created_at)}
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

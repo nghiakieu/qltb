@@ -7,6 +7,7 @@ import { useAuth, VAI_TRO_LABEL } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import useSWR from 'swr';
 import Sidebar from '@/components/Sidebar';
+import { formatVNDateTime } from '@/lib/utils';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const VAI_TRO_OPTIONS = [
@@ -26,8 +27,7 @@ const VAI_TRO_COLOR: Record<string, string> = {
 };
 
 function fmtDate(dt?: string | null) {
-  if (!dt) return '—';
-  return new Date(dt).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+  return formatVNDateTime(dt);
 }
 
 // ── Modal: Create / Edit ───────────────────────────────────────────────────
