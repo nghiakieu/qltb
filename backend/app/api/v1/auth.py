@@ -1,7 +1,6 @@
 """Authentication endpoints: login, refresh, me, change-password."""
 
-from datetime import datetime, timezone
-
+from app.core.datetime_utils import now_ict
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from jose import JWTError
 from sqlalchemy.orm import Session
@@ -52,7 +51,7 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
         )
 
     # Update last_login timestamp
-    user.last_login = datetime.now(timezone.utc)
+    user.last_login = now_ict()
     db.commit()
 
     token_data = {"sub": user.id, "username": user.username, "vai_tro": user.vai_tro}

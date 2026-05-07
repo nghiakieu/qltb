@@ -14,6 +14,7 @@ from app.models.nhat_ky_su_kien import NhatKySuKien
 from app.models.base import generate_uuid
 from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
 from app.models.ca_lam_viec import CaLamViec
+from app.core.datetime_utils import now_ict, today_ict
 from app.schemas.schemas import (
     ThietBiCreate, ThietBiUpdate,
     ThietBiResponse, ThietBiDetail,
@@ -237,7 +238,6 @@ def phan_bo_thiet_bi(
     db: Session = Depends(get_db),
 ):
     """Assign or unassign equipment to a work front."""
-    from datetime import datetime
     
     tb = db.query(ThietBi).filter(ThietBi.id == tb_id).first()
     if not tb:
@@ -263,7 +263,7 @@ def phan_bo_thiet_bi(
     tb.mui_id = target_mui_id
     if target_ct_id != old_ct_id:
         tb.cong_truong_id = target_ct_id
-        tb.ngay_den_ct = datetime.now().strftime("%Y-%m-%d")
+        tb.ngay_den_ct = today_ict().isoformat()
     
     # Status logic: If assigned to a mui OR staying within site, it should be HOAT_DONG
     if target_mui_id is not None or is_internal:

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense, useMemo, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { api } from '@/lib/api';
+import { getVNISODate } from '@/lib/utils';
 import type { CaLamViec, ThietBi, NhanSu, MuiThiCong } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
 import { 
@@ -33,7 +34,7 @@ function CaLamViecContent() {
   const [loading, setLoading] = useState(true);
   
   // Filters
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState(getVNISODate());
   const [filterEquipment, setFilterEquipment] = useState('');
   
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' | null }>({
@@ -47,7 +48,7 @@ function CaLamViecContent() {
     thiet_bi_id: '',
     nhan_su_id: '',
     mui_id: '',
-    ngay_lam_viec: new Date().toISOString().split('T')[0],
+    ngay_lam_viec: getVNISODate(),
     ca_so: '1',
     gio_bat_dau: '07:00',
     gio_ket_thuc: '17:00',

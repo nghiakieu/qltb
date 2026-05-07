@@ -35,7 +35,17 @@ export function formatVNDate(date: string | Date | number | null | undefined): s
 }
 
 export function getVNTimeNow(): Date {
-  // Returns a Date object representing the current time, 
-  // but formatted output will use VN timezone.
   return new Date();
+}
+
+export function getVNISODate(): string {
+  const now = new Date();
+  // Asia/Ho_Chi_Minh is UTC+7
+  const formatter = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return formatter.format(now);
 }

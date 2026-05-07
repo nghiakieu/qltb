@@ -11,6 +11,7 @@ Creates:
 """
 
 from datetime import date, datetime, time, timedelta
+from app.core.datetime_utils import now_ict
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -270,7 +271,7 @@ def seed_database(db: Session):
             loai_su_kien="DOI_TRANG_THAI",
             thiet_bi_id=tbs[i].id,
             mui_id=tbs[i].mui_id,
-            thoi_gian=datetime.now() - timedelta(hours=i*2),
+            thoi_gian=now_ict() - timedelta(hours=i*2),
             ghi_chu=f"Hệ thống tự động ghi nhận trạng thái {tbs[i].trang_thai}"
         )
         logs.append(log)
