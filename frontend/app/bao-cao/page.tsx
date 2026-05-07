@@ -248,7 +248,7 @@ export default function BaoCaoPage() {
               />
             </div>
           </div>
-          <div style={{ overflowX: 'auto' }}>
+          <div className="table-wrapper">
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', background: 'rgba(255,255,255,0.02)' }}>

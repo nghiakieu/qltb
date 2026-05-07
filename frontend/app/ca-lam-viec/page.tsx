@@ -259,7 +259,7 @@ function CaLamViecContent() {
       </div>
 
       {/* Table */}
-      <div className="card scroll-y" style={{ padding: 0, flex: 1 }}>
+      <div className="card" style={{ padding: 0 }}>
         <div className="table-wrapper"><table className="data-table">
           <thead>
             <tr>

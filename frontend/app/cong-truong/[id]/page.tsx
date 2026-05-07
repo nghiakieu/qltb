@@ -570,7 +570,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
 
         {tab === 'list' && (
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <div className="card scroll-y" style={{ padding: 0, flex: 1 }}>
+            <div className="card" style={{ padding: 0 }}>
               <div className="table-wrapper">
                 <table className="data-table">
                 <thead>

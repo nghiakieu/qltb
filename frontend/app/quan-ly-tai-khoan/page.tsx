@@ -452,10 +452,10 @@ function TaiKhoanPageContent() {
         .tk-spinner { width: 24px; height: 24px; border: 2.5px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin .6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .tk-table-wrap { border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .tk-table-wrap { border-radius: 16px; border: 1px solid #e2e8f0; overflow: auto; box-shadow: 0 1px 4px rgba(0,0,0,.06); max-height: 70vh; }
         .tk-table { width: 100%; border-collapse: collapse; }
-        .tk-table thead { background: #f8fafc; }
-        .tk-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #e2e8f0; }
+        .tk-table thead { position: sticky; top: 0; z-index: 10; background: #f8fafc; }
+        .tk-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
         .tk-table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
         .tk-table tbody tr:last-child td { border-bottom: none; }
         .tk-table tbody tr:hover { background: #f8fafc; }

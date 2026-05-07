@@ -336,16 +336,22 @@ a {
   font-size: 14px;
 }
 
-.data-table th {
+.data-table th,
+.table thead th {
   text-align: left;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-card);
   color: var(--text-muted);
   font-weight: 600;
   border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); /* Subtle shadow to distinguish header */
 }
 
-.data-table td {
+.data-table td,
+.table td {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -1128,12 +1134,20 @@ a {
   animation: fadeIn 0.2s ease;
 }
 
-/* --- Table Wrapper — Horizontal Scroll on mobile --- */
+/* --- Table Wrapper — Vertical & Horizontal Scroll --- */
 .table-wrapper {
-  overflow-x: auto;
+  overflow: auto;
   max-width: 100%;
+  max-height: 75vh; /* Standard height for sticky tables */
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-lg);
+  position: relative;
+  background: var(--bg-card);
+}
+
+.scroll-y {
+  overflow-y: auto !important;
+  max-height: 75vh;
 }
 
 /* --- Page Header — tighter on mobile --- */
