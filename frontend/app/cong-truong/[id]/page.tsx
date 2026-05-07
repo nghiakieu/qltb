@@ -106,13 +106,14 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
     setDragTbId(tbId);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', tbId);
-    (e.target as HTMLElement).classList.add('dragging');
+    // Use currentTarget (the card div) not target (child element that was clicked)
+    (e.currentTarget as HTMLElement).classList.add('dragging');
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
     setDragTbId(null);
     setDropTarget(null);
-    (e.target as HTMLElement).classList.remove('dragging');
+    (e.currentTarget as HTMLElement).classList.remove('dragging');
   };
 
   const handleDragOver = (e: React.DragEvent, muiId: string | null) => {
@@ -304,8 +305,10 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
           border: '1px solid var(--border-color)'
         }}
       >
-        <div className="tb-card-content" style={{ gap: '12px', alignItems: 'center', display: 'flex', width: '100%', height: '100%' }}>
+        {/* draggable=false on all children so browser won't treat them as separate drag targets */}
+        <div draggable={false} className="tb-card-content" style={{ gap: '12px', alignItems: 'center', display: 'flex', width: '100%', height: '100%' }}>
           <div 
+            draggable={false}
             className="tb-card-icon-container" 
             style={{ 
               width: '80px', 
@@ -314,7 +317,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
-              cursor: 'pointer',
+              cursor: 'grab',
               backgroundColor: 'rgba(0,0,0,0.05)',
               margin: 0,
               padding: 0
@@ -322,6 +325,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
             onClick={() => router.push(`/thiet-bi/${tb.id}`)}
           >
             <div 
+              draggable={false}
               style={{ 
                 width: '100%', 
                 height: '100%', 
@@ -333,6 +337,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
             >
               {tb.hinh_anh ? (
                 <div 
+                  draggable={false}
                   style={{ 
                     width: '100%', 
                     height: '100%', 
@@ -347,8 +352,9 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
               )}
             </div>
           </div>
-          <div className="tb-card-info" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: '4px' }}>
+          <div draggable={false} className="tb-card-info" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: '4px' }}>
             <div 
+              draggable={false}
               className="tb-card-name" 
               title={tb.ten_tb} 
               style={{ 
@@ -366,11 +372,12 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
             >
               {tb.ten_tb}
             </div>
-            <div className="tb-card-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', overflow: 'hidden', flexWrap: 'nowrap' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <div draggable={false} className="tb-card-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', overflow: 'hidden', flexWrap: 'nowrap' }}>
+              <span draggable={false} style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {tb.ma_tb || 'N/A'}
               </span>
               <select
+                draggable={false}
                 className="status-select-mini"
                 style={{ 
                   padding: '2px 8px', 
@@ -413,6 +420,7 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
       </div>
     );
   };
+
 
 
   return (

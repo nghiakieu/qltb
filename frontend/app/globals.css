@@ -660,7 +660,6 @@ a {
   opacity: 0.45;
   transform: scale(0.96) rotate(1deg);
   will-change: transform;
-  pointer-events: none;
   transition: none; /* disable transition while dragging for smoothness */
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
