@@ -9,6 +9,7 @@ import type { ThietBi, CongTruong, MuiThiCong, LoaiThietBi, TrangThaiThietBi } f
 import { TRANG_THAI_TB_LABEL, TRANG_THAI_TB_COLOR } from '@/types';
 import { useEquipmentTypes } from '@/hooks/useEquipmentTypes';
 import { PermissionGuard } from '@/components/PermissionGuard';
+import * as XLSX from 'xlsx';
 
 function ThietBiContent() {
   const { types, getLabel, getIconNode, availableIcons: EQUIPMENT_ICONS } = useEquipmentTypes();
@@ -27,7 +28,7 @@ function ThietBiContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadResult, setUploadResult] = useState<{created:number; errors:string[]} | null>(null);
+  const [uploadResult, setUploadResult] = useState<{created:number} | null>(null);
   const [formData, setFormData] = useState({
     ten_tb: '', 
     ma_tb: '',
@@ -179,13 +180,50 @@ function ThietBiContent() {
 
   const handleUpload = async () => {
     if (!uploadFile) return;
-    try {
-      const result = await api.uploadCSV(uploadFile);
-      setUploadResult(result);
-      mutateTb();
-    } catch (err) {
-      alert('Tải lên thất bại: ' + (err as Error).message);
-    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+        if (json.length === 0) {
+          alert('File Excel không có dữ liệu');
+          return;
+        }
+
+        const itemsToCreate = json.map(row => {
+          const loaiValue = (row.loai || row['Loại'] || '').toString().trim();
+          // Auto-map image based on type
+          const matchedType = types.find(t => t.id === loaiValue || t.name === loaiValue);
+          const hinhAnh = matchedType?.isImage ? matchedType.iconValue : '/icons/equipment/may_xuc_banh_xich.png';
+
+          return {
+            ten_tb: row.ten_tb || row['Tên thiết bị'],
+            ma_tb: row.ma_tb || row['Mã TB'],
+            loai: matchedType?.id || 'KHAC',
+            bien_so: (row.bien_so || row['Biển số'] || '').toString(),
+            nam_sx: row.nam_sx || row['Năm sản xuất'] ? parseInt(row.nam_sx || row['Năm sản xuất']) : undefined,
+            hang_sx: row.hang_sx || row['Hãng sản xuất'],
+            cong_suat_gio_max: row.cong_suat_gio_max || row['Giờ max'] ? parseFloat(row.cong_suat_gio_max || row['Giờ max']) : undefined,
+            hinh_anh: hinh_anh,
+            trang_thai: 'CHO'
+          };
+        });
+
+        const result = await api.batchCreateThietBi(itemsToCreate);
+        setUploadResult(result);
+        mutateTb();
+        alert(`Thành công! Đã tải lên ${result.created} thiết bị.`);
+        setShowUpload(false);
+        setUploadFile(null);
+      } catch (err) {
+        alert('Lỗi khi xử lý file Excel: ' + (err as Error).message);
+      }
+    };
+    reader.readAsArrayBuffer(uploadFile);
   };
 
   const handleDownload = () => {
@@ -193,26 +231,36 @@ function ThietBiContent() {
       alert('Không có dữ liệu để tải xuống');
       return;
     }
-    const headers = ['Mã TB', 'Tên thiết bị', 'Mã HT', 'Biển số', 'Nhà sản xuất', 'Năm sản xuất', 'Trạng thái', 'Loại', 'Mũi thi công'];
-    const rows = equipment.map(tb => [
-      `"${tb.ma_tb || ''}"`,
-      `"${tb.ten_tb}"`,
-      tb.id,
-      `"${tb.bien_so || ''}"`,
-      `"${tb.hang_sx || ''}"`,
-      tb.nam_sx || '',
-      TRANG_THAI_TB_LABEL[tb.trang_thai] || tb.trang_thai,
-      getLabel(tb.loai) || tb.loai,
-      tb.mui_thi_cong ? `"${tb.mui_thi_cong.ten_mui}"` : ''
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "danh_sach_thiet_bi.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const data = equipment.map((tb, index) => ({
+      'STT': index + 1,
+      'Mã TB': tb.ma_tb || '',
+      'Tên thiết bị': tb.ten_tb,
+      'Loại': getLabel(tb.loai),
+      'Biển số': tb.bien_so || '',
+      'Hãng sản xuất': tb.hang_sx || '',
+      'Năm sản xuất': tb.nam_sx || '',
+      'Trạng thái': TRANG_THAI_TB_LABEL[tb.trang_thai] || tb.trang_thai,
+      'Công trường': getSiteName(tb.mui_id),
+      'Mũi thi công': getMuiName(tb.mui_id),
+      'Giờ máy max': tb.cong_suat_gio_max || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Thiết bị");
+
+    // Auto-size columns
+    const maxWidths = data.reduce((acc: any, row: any) => {
+      Object.keys(row).forEach((key, i) => {
+        const val = row[key] ? row[key].toString().length : 0;
+        acc[i] = Math.max(acc[i] || key.length, val);
+      });
+      return acc;
+    }, []);
+    worksheet['!cols'] = maxWidths.map((w: number) => ({ w: w + 2 }));
+
+    XLSX.writeFile(workbook, "danh_sach_thiet_bi.xlsx");
   };
 
   if (equipment.length === 0 && !tbError) {
@@ -244,9 +292,9 @@ function ThietBiContent() {
         </select>
         <span style={{color:'var(--text-muted)', fontSize:13}}>Hiển thị {filtered.length} / {equipment.length} thiết bị</span>
         <div className="toolbar-right">
-          <button className="btn btn-ghost btn-sm" onClick={handleDownload}>⬇️ Tải xuống CSV</button>
+          <button className="btn btn-ghost btn-sm" onClick={handleDownload}>⬇️ Tải xuống Excel</button>
           <PermissionGuard allowedRoles={['ADMIN', 'CHI_HUY_TRUONG']}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowUpload(true)}>⬆️ Tải lên CSV</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowUpload(true)}>⬆️ Tải lên Excel</button>
             <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ Thêm thiết bị</button>
           </PermissionGuard>
         </div>
@@ -467,12 +515,12 @@ function ThietBiContent() {
       {showUpload && (
         <div className="modal-overlay" onClick={() => { setShowUpload(false); setUploadResult(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h3>Upload thiết bị từ CSV</h3>
+            <h3>Upload thiết bị từ Excel</h3>
             <p style={{fontSize:13, color:'var(--text-secondary)', marginBottom:16}}>
-              File CSV cần có cột: <code>ten_tb, loai, bien_so, nam_sx, hang_sx, cong_suat_gio_max</code>
+              File Excel cần có các cột (hoặc tiêu đề): <code>ten_tb (Tên thiết bị), loai (Loại), bien_so (Biển số), nam_sx (Năm sản xuất), hang_sx (Hãng sản xuất), cong_suat_gio_max (Giờ max)</code>
             </p>
             <div className="form-group">
-              <input type="file" accept=".csv,.txt" onChange={e => setUploadFile(e.target.files?.[0] || null)}
+              <input type="file" accept=".xlsx,.xls" onChange={e => setUploadFile(e.target.files?.[0] || null)}
                 style={{color:'var(--text-primary)'}} />
             </div>
             {uploadResult && (

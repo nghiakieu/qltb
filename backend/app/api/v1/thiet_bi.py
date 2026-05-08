@@ -181,6 +181,24 @@ async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
     return {"created": len(created), "errors": errors, "items": created}
 
 
+@router.post("/batch", status_code=201)
+def batch_create_thiet_bi(data: List[ThietBiCreate], db: Session = Depends(get_db)):
+    """Create multiple equipment entries at once."""
+    created_items = []
+    for item in data:
+        tb_data = item.model_dump()
+        if not tb_data.get('ma_tb'):
+            tb_data['ma_tb'] = get_next_ma_tb(db)
+        
+        tb = ThietBi(**tb_data)
+        db.add(tb)
+        db.flush() # To update ma_tb for the next iteration
+        created_items.append(tb)
+    
+    db.commit()
+    return {"created": len(created_items)}
+
+
 @router.put("/{tb_id}", response_model=ThietBiResponse)
 def update_thiet_bi(tb_id: str, data: ThietBiUpdate, db: Session = Depends(get_db)):
     """Update equipment info."""

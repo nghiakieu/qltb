@@ -103,6 +103,8 @@ export const api = {
     if (!res.ok) throw new Error('Upload failed');
     return res.json();
   },
+  batchCreateThietBi: (data: Partial<ThietBi>[]) =>
+    fetchAPI<{created: number}>('/api/v1/thiet-bi/batch', { method: 'POST', body: JSON.stringify(data) }),
 
   // Nhan Su
   listNhanSu: (congTruongId?: string) => {
