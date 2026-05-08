@@ -28,7 +28,7 @@ function ThietBiContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadResult, setUploadResult] = useState<{created:number} | null>(null);
+  const [uploadResult, setUploadResult] = useState<{created:number, errors?: string[]} | null>(null);
   const [formData, setFormData] = useState({
     ten_tb: '', 
     ma_tb: '',
@@ -526,7 +526,7 @@ function ThietBiContent() {
             {uploadResult && (
               <div style={{padding:12, background:'rgba(34,197,94,0.1)', borderRadius:8, marginBottom:16}}>
                 <p style={{color:'var(--accent-green)', fontWeight:600}}>Đã thêm {uploadResult.created} thiết bị</p>
-                {uploadResult.errors.length > 0 && (
+                {uploadResult.errors && uploadResult.errors.length > 0 && (
                   <div style={{color:'var(--accent-red)', fontSize:12, marginTop:8}}>
                     {uploadResult.errors.map((e,i) => <p key={i}>{e}</p>)}
                   </div>
