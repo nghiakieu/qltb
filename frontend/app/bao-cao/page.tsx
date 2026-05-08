@@ -66,35 +66,40 @@ export default function BaoCaoPage() {
       return;
     }
 
-    const data = reportData.map((item, index) => ({
-      'STT': index + 1,
-      'Tên thiết bị': item.ten_tb,
-      'Mã thiết bị': item.ma_tb,
-      'Loại': item.loai,
-      'Biển số': item.bien_so || '',
-      'Tổng giờ máy': item.tong_gio,
-      'Tổng nhiên liệu (L)': item.tong_nhien_lieu,
-      'Số ca làm việc': item.so_ca,
-      'Mũi hiện tại': item.mui_hien_tai,
-      'Công trường hiện tại': item.ct_hien_tai
-    }));
+    try {
+      const data = reportData.map((item, index) => ({
+        'STT': index + 1,
+        'Tên thiết bị': item.ten_tb || '',
+        'Mã thiết bị': item.ma_tb || '',
+        'Loại': item.loai || '',
+        'Biển số': item.bien_so || '',
+        'Tổng giờ máy': item.tong_gio || 0,
+        'Tổng nhiên liệu (L)': item.tong_nhien_lieu || 0,
+        'Số ca làm việc': item.so_ca || 0,
+        'Mũi hiện tại': item.mui_hien_tai || '',
+        'Công trường hiện tại': item.ct_hien_tai || ''
+      }));
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo thiết bị");
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Bao_cao");
 
-    // Auto-size columns
-    const maxWidths = data.reduce((acc: any, row: any) => {
-      Object.keys(row).forEach((key, i) => {
-        const val = row[key] ? row[key].toString().length : 0;
-        acc[i] = Math.max(acc[i] || key.length, val);
-      });
-      return acc;
-    }, []);
-    worksheet['!cols'] = maxWidths.map((w: number) => ({ w: w + 2 }));
+      // Auto-size columns
+      const maxWidths = data.reduce((acc: any, row: any) => {
+        Object.keys(row).forEach((key, i) => {
+          const val = row[key as keyof typeof row] ? row[key as keyof typeof row].toString().length : 0;
+          acc[i] = Math.max(acc[i] || key.length, val);
+        });
+        return acc;
+      }, []);
+      worksheet['!cols'] = maxWidths.map((w: number) => ({ w: Math.min(w + 2, 50) }));
 
-    const fileName = `bao_cao_thiet_bi_${getVNISODate()}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+      const fileName = `bao_cao_thiet_bi_${getVNISODate()}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Có lỗi xảy ra khi xuất file Excel');
+    }
   };
 
   const totalHours = reportData.reduce((sum, item) => sum + item.tong_gio, 0);

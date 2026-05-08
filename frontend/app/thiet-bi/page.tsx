@@ -227,40 +227,47 @@ function ThietBiContent() {
   };
 
   const handleDownload = () => {
-    if (equipment.length === 0) {
-      alert('Không có dữ liệu để tải xuống');
+    const dataToExport = filtered.length > 0 ? filtered : equipment;
+    
+    if (dataToExport.length === 0) {
+      alert('Không có dữ liệu thiết bị để tải xuống');
       return;
     }
 
-    const data = equipment.map((tb, index) => ({
-      'STT': index + 1,
-      'Mã TB': tb.ma_tb || '',
-      'Tên thiết bị': tb.ten_tb,
-      'Loại': getLabel(tb.loai),
-      'Biển số': tb.bien_so || '',
-      'Hãng sản xuất': tb.hang_sx || '',
-      'Năm sản xuất': tb.nam_sx || '',
-      'Trạng thái': TRANG_THAI_TB_LABEL[tb.trang_thai] || tb.trang_thai,
-      'Công trường': getSiteName(tb.mui_id),
-      'Mũi thi công': getMuiName(tb.mui_id),
-      'Giờ máy max': tb.cong_suat_gio_max || ''
-    }));
+    try {
+      const data = dataToExport.map((tb, index) => ({
+        'STT': index + 1,
+        'Mã TB': tb.ma_tb || '',
+        'Tên thiết bị': tb.ten_tb || '',
+        'Loại': getLabel(tb.loai),
+        'Biển số': tb.bien_so || '',
+        'Hãng sản xuất': tb.hang_sx || '',
+        'Năm sản xuất': tb.nam_sx || '',
+        'Trạng thái': TRANG_THAI_TB_LABEL[tb.trang_thai as keyof typeof TRANG_THAI_TB_LABEL] || tb.trang_thai,
+        'Công trường': getSiteName(tb.mui_id),
+        'Mũi thi công': getMuiName(tb.mui_id),
+        'Giờ max': tb.cong_suat_gio_max || ''
+      }));
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Thiết bị");
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Thiet_bi");
 
-    // Auto-size columns
-    const maxWidths = data.reduce((acc: any, row: any) => {
-      Object.keys(row).forEach((key, i) => {
-        const val = row[key] ? row[key].toString().length : 0;
-        acc[i] = Math.max(acc[i] || key.length, val);
-      });
-      return acc;
-    }, []);
-    worksheet['!cols'] = maxWidths.map((w: number) => ({ w: w + 2 }));
+      // Auto-size columns
+      const maxWidths = data.reduce((acc: any, row: any) => {
+        Object.keys(row).forEach((key, i) => {
+          const val = row[key as keyof typeof row] ? row[key as keyof typeof row].toString().length : 0;
+          acc[i] = Math.max(acc[i] || key.length, val);
+        });
+        return acc;
+      }, []);
+      worksheet['!cols'] = maxWidths.map((w: number) => ({ w: Math.min(w + 2, 50) }));
 
-    XLSX.writeFile(workbook, "danh_sach_thiet_bi.xlsx");
+      XLSX.writeFile(workbook, "danh_sach_thiet_bi.xlsx");
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Có lỗi xảy ra khi xuất file Excel');
+    }
   };
 
   if (equipment.length === 0 && !tbError) {
