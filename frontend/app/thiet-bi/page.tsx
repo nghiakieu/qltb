@@ -227,10 +227,11 @@ function ThietBiContent() {
   };
 
   const handleDownload = () => {
-    const dataToExport = filtered.length > 0 ? filtered : equipment;
+    // Luôn ưu tiên xuất dữ liệu đang hiển thị (sau khi lọc)
+    const dataToExport = filtered;
     
     if (dataToExport.length === 0) {
-      alert('Không có dữ liệu thiết bị để tải xuống');
+      alert('Không có dữ liệu thiết bị phù hợp để tải xuống');
       return;
     }
 
