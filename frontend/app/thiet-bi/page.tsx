@@ -230,44 +230,80 @@ function ThietBiContent() {
     // Luôn ưu tiên xuất dữ liệu đang hiển thị (sau khi lọc)
     const dataToExport = filtered;
     
-    if (dataToExport.length === 0) {
-      alert('Không có dữ liệu thiết bị phù hợp để tải xuống');
+    console.log('Exporting data:', dataToExport);
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert('Không có dữ liệu thiết bị phù hợp để tải xuống. Hiện tại danh sách đang có ' + equipment.length + ' thiết bị tổng cộng.');
       return;
     }
 
     try {
-      const data = dataToExport.map((tb, index) => ({
-        'STT': index + 1,
-        'Mã TB': tb.ma_tb || '',
-        'Tên thiết bị': tb.ten_tb || '',
-        'Loại': getLabel(tb.loai),
-        'Biển số': tb.bien_so || '',
-        'Hãng sản xuất': tb.hang_sx || '',
-        'Năm sản xuất': tb.nam_sx || '',
-        'Trạng thái': TRANG_THAI_TB_LABEL[tb.trang_thai as keyof typeof TRANG_THAI_TB_LABEL] || tb.trang_thai,
-        'Công trường': getSiteName(tb.mui_id),
-        'Mũi thi công': getMuiName(tb.mui_id),
-        'Giờ max': tb.cong_suat_gio_max || ''
-      }));
+      console.log('Preparing Excel rows for ' + dataToExport.length + ' items');
+      
+      // Sử dụng aoa_to_sheet (Array of Arrays) để đảm bảo dữ liệu được ghi chính xác nhất
+      const headers = [
+        'STT', 
+        'Mã TB', 
+        'Tên thiết bị', 
+        'Loại', 
+        'Biển số', 
+        'Hãng sản xuất', 
+        'Năm sản xuất', 
+        'Trạng thái', 
+        'Công trường', 
+        'Mũi thi công', 
+        'Giờ max'
+      ];
 
-      const worksheet = XLSX.utils.json_to_sheet(data);
+      const rows = dataToExport.map((tb, index) => {
+        try {
+          return [
+            index + 1,
+            tb.ma_tb || '',
+            tb.ten_tb || '',
+            getLabel(tb.loai) || '',
+            tb.bien_so || '',
+            tb.hang_sx || '',
+            tb.nam_sx || '',
+            TRANG_THAI_TB_LABEL[tb.trang_thai as keyof typeof TRANG_THAI_TB_LABEL] || tb.trang_thai || '',
+            getSiteName(tb.mui_id) || '',
+            getMuiName(tb.mui_id) || '',
+            tb.cong_suat_gio_max || ''
+          ];
+        } catch (e) {
+          console.error('Error mapping row:', tb, e);
+          return [index + 1, 'Error', 'Error', '', '', '', '', '', '', '', ''];
+        }
+      });
+
+      console.log('AOA data prepared:', [headers, ...rows]);
+
+      const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Thiet_bi");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach");
 
-      // Auto-size columns
-      const maxWidths = data.reduce((acc: any, row: any) => {
-        Object.keys(row).forEach((key, i) => {
-          const val = row[key as keyof typeof row] ? row[key as keyof typeof row].toString().length : 0;
-          acc[i] = Math.max(acc[i] || key.length, val);
-        });
-        return acc;
-      }, []);
-      worksheet['!cols'] = maxWidths.map((w: number) => ({ w: Math.min(w + 2, 50) }));
+      // Cấu hình độ rộng cột cơ bản
+      const wscols = [
+        {wch: 5},  // STT
+        {wch: 15}, // Mã TB
+        {wch: 30}, // Tên
+        {wch: 15}, // Loại
+        {wch: 15}, // Biển số
+        {wch: 15}, // Hãng
+        {wch: 10}, // Năm
+        {wch: 15}, // Trạng thái
+        {wch: 25}, // Công trường
+        {wch: 25}, // Mũi
+        {wch: 10}  // Giờ max
+      ];
+      worksheet['!cols'] = wscols;
 
+      console.log('Writing file...');
       XLSX.writeFile(workbook, "danh_sach_thiet_bi.xlsx");
+      console.log('Write complete.');
     } catch (err) {
-      console.error('Export error:', err);
-      alert('Có lỗi xảy ra khi xuất file Excel');
+      console.error('Export error details:', err);
+      alert('Có lỗi xảy ra khi xuất file Excel: ' + (err as Error).message);
     }
   };
 

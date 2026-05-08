@@ -61,44 +61,61 @@ export default function BaoCaoPage() {
   }, [filters.tu_ngay, filters.den_ngay, filters.cong_truong_id, filters.mui_id]);
 
   const handleExport = () => {
-    if (reportData.length === 0) {
-      alert('Không có dữ liệu để tải xuống');
+    if (!reportData || reportData.length === 0) {
+      alert('Không có dữ liệu báo cáo để tải xuống');
       return;
     }
 
     try {
-      const data = reportData.map((item, index) => ({
-        'STT': index + 1,
-        'Tên thiết bị': item.ten_tb || '',
-        'Mã thiết bị': item.ma_tb || '',
-        'Loại': item.loai || '',
-        'Biển số': item.bien_so || '',
-        'Tổng giờ máy': item.tong_gio || 0,
-        'Tổng nhiên liệu (L)': item.tong_nhien_lieu || 0,
-        'Số ca làm việc': item.so_ca || 0,
-        'Mũi hiện tại': item.mui_hien_tai || '',
-        'Công trường hiện tại': item.ct_hien_tai || ''
-      }));
+      console.log('Exporting report data:', reportData);
+      
+      const headers = [
+        'STT', 
+        'Tên thiết bị', 
+        'Mã thiết bị', 
+        'Loại', 
+        'Biển số', 
+        'Tổng giờ máy', 
+        'Tổng nhiên liệu (L)', 
+        'Số ca làm việc', 
+        'Mũi hiện tại', 
+        'Công trường hiện tại'
+      ];
 
-      const worksheet = XLSX.utils.json_to_sheet(data);
+      const rows = reportData.map((item, index) => [
+        index + 1,
+        item.ten_tb || '',
+        item.ma_tb || '',
+        item.loai || '',
+        item.bien_so || '',
+        item.tong_gio || 0,
+        item.tong_nhien_lieu || 0,
+        item.so_ca || 0,
+        item.mui_hien_tai || '',
+        item.ct_hien_tai || ''
+      ]);
+
+      const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Bao_cao");
 
-      // Auto-size columns
-      const maxWidths = data.reduce((acc: any, row: any) => {
-        Object.keys(row).forEach((key, i) => {
-          const val = row[key as keyof typeof row] ? row[key as keyof typeof row].toString().length : 0;
-          acc[i] = Math.max(acc[i] || key.length, val);
+      // Auto-size columns logic
+      const wscols = headers.map((h, i) => {
+        let max = h.length;
+        rows.forEach(row => {
+          const val = row[i] ? row[i].toString().length : 0;
+          if (val > max) max = val;
         });
-        return acc;
-      }, []);
-      worksheet['!cols'] = maxWidths.map((w: number) => ({ w: Math.min(w + 2, 50) }));
+        return { wch: Math.min(max + 2, 50) };
+      });
+      worksheet['!cols'] = wscols;
 
       const fileName = `bao_cao_thiet_bi_${getVNISODate()}.xlsx`;
+      console.log('Writing report file:', fileName);
       XLSX.writeFile(workbook, fileName);
     } catch (err) {
-      console.error('Export error:', err);
-      alert('Có lỗi xảy ra khi xuất file Excel');
+      console.error('Report export error:', err);
+      alert('Có lỗi xảy ra khi xuất file Excel: ' + (err as Error).message);
     }
   };
 
