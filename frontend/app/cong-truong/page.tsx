@@ -12,29 +12,52 @@ export default function CongTruongPage() {
   const [sites, setSites] = useState<CongTruong[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ ten_ct: '', dia_chi: '', chu_dau_tu: '', ngay_bat_dau: '', ngay_ket_thuc: '' });
+  const [formData, setFormData] = useState({ ten_ct: '', dia_chi: '', chu_dau_tu: '', ngay_bat_dau: '', ngay_ket_thuc: '', map_url: '' });
+  const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
     api.listCongTruong().then(setSites).finally(() => setLoading(false));
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!formData.ten_ct.trim()) return;
     try {
-      await api.createCongTruong({
+      const data = {
         ten_ct: formData.ten_ct,
         dia_chi: formData.dia_chi || undefined,
         chu_dau_tu: formData.chu_dau_tu || undefined,
         ngay_bat_dau: formData.ngay_bat_dau || undefined,
         ngay_ket_thuc: formData.ngay_ket_thuc || undefined,
-      });
+        map_url: formData.map_url || undefined,
+      };
+
+      if (editId) {
+        await api.updateCongTruong(editId, data);
+      } else {
+        await api.createCongTruong(data);
+      }
+
       const updated = await api.listCongTruong();
       setSites(updated);
       setShowForm(false);
-      setFormData({ ten_ct: '', dia_chi: '', chu_dau_tu: '', ngay_bat_dau: '', ngay_ket_thuc: '' });
+      setEditId(null);
+      setFormData({ ten_ct: '', dia_chi: '', chu_dau_tu: '', ngay_bat_dau: '', ngay_ket_thuc: '', map_url: '' });
     } catch (err) {
-      alert('Lỗi khi tạo công trường: ' + (err as Error).message);
+      alert(`Lỗi khi ${editId ? 'cập nhật' : 'tạo'} công trường: ` + (err as Error).message);
     }
+  };
+
+  const handleEdit = (site: CongTruong) => {
+    setEditId(site.id);
+    setFormData({
+      ten_ct: site.ten_ct,
+      dia_chi: site.dia_chi || '',
+      chu_dau_tu: site.chu_dau_tu || '',
+      ngay_bat_dau: site.ngay_bat_dau || '',
+      ngay_ket_thuc: site.ngay_ket_thuc || '',
+      map_url: site.map_url || '',
+    });
+    setShowForm(true);
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -68,7 +91,7 @@ export default function CongTruongPage() {
         {showForm && (
           <div className="modal-overlay" onClick={() => setShowForm(false)}>
             <div className="modal" onClick={e => e.stopPropagation()}>
-              <h3>Thêm công trường mới</h3>
+              <h3>{editId ? 'Chỉnh sửa công trường' : 'Thêm công trường mới'}</h3>
               <div className="form-group">
                 <label>Tên công trường *</label>
                 <input className="form-input" placeholder="VD: Cau My Thuan 3" value={formData.ten_ct}
@@ -84,6 +107,11 @@ export default function CongTruongPage() {
                 <input className="form-input" placeholder="Tên chủ đầu tư" value={formData.chu_dau_tu}
                   onChange={e => setFormData({...formData, chu_dau_tu: e.target.value})} />
               </div>
+              <div className="form-group">
+                <label>Link Google Maps</label>
+                <input className="form-input" placeholder="Dán link Google Maps tại đây" value={formData.map_url}
+                  onChange={e => setFormData({...formData, map_url: e.target.value})} />
+              </div>
               <div style={{display:'flex', gap:12}}>
                 <div className="form-group" style={{flex:1}}>
                   <label>Ngày bắt đầu</label>
@@ -97,8 +125,8 @@ export default function CongTruongPage() {
                 </div>
               </div>
               <div style={{display:'flex', gap:12, justifyContent:'flex-end', marginTop:16}}>
-                <button className="btn btn-ghost" onClick={() => setShowForm(false)}>Hủy</button>
-                <button className="btn btn-primary" onClick={handleCreate}>Tạo công trường</button>
+                <button className="btn btn-ghost" onClick={() => { setShowForm(false); setEditId(null); }}>Hủy</button>
+                <button className="btn btn-primary" onClick={handleSave}>{editId ? 'Cập nhật' : 'Tạo công trường'}</button>
               </div>
             </div>
           </div>
@@ -112,13 +140,21 @@ export default function CongTruongPage() {
                   <Link href={`/cong-truong/${site.id}`}><h3>{site.ten_ct}</h3></Link>
                   <PermissionGuard allowedRoles={['ADMIN']}>
                     <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                      <button title="Sửa"
+                        style={{background:'none', border:'none', cursor:'pointer', fontSize:16, color:'var(--accent-blue)', fontWeight:'bold'}} onClick={() => handleEdit(site)}>✏️</button>
                       <button title="Xóa"
                         style={{background:'none', border:'none', cursor:'pointer', fontSize:16, color:'var(--danger)', fontWeight:'bold'}} onClick={() => handleDelete(site.id, site.ten_ct)}>✕</button>
                     </div>
                   </PermissionGuard>
                 </div>
                 <div className="site-card-meta">
-                  <span>📍 {site.dia_chi}</span>
+                  {site.map_url ? (
+                    <a href={site.map_url} target="_blank" rel="noopener noreferrer" className="location-link" title="Xem trên Google Maps">
+                      📍 {site.dia_chi || 'Xem bản đồ'}
+                    </a>
+                  ) : (
+                    <span>📍 {site.dia_chi}</span>
+                  )}
                   <span>🏢 {site.chu_dau_tu}</span>
                   <span>📅 {site.ngay_bat_dau} → {site.ngay_ket_thuc}</span>
                 </div>

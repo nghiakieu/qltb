@@ -329,6 +329,21 @@ a {
   color: var(--text-secondary);
 }
 
+.location-link {
+  color: var(--accent-blue);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.location-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
 /* Data Table */
 .data-table {
   width: 100%;

@@ -16,6 +16,7 @@ class CongTruongBase(BaseModel):
     ngay_bat_dau: Optional[date] = None
     ngay_ket_thuc: Optional[date] = None
     chu_dau_tu: Optional[str] = None
+    map_url: Optional[str] = None
 
 
 class CongTruongCreate(CongTruongBase):
@@ -30,6 +31,7 @@ class CongTruongUpdate(BaseModel):
     ngay_bat_dau: Optional[date] = None
     ngay_ket_thuc: Optional[date] = None
     chu_dau_tu: Optional[str] = None
+    map_url: Optional[str] = None
 
 
 class CongTruongResponse(CongTruongBase):

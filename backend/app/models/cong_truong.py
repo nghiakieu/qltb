@@ -22,6 +22,7 @@ class CongTruong(Base, TimestampMixin):
     ngay_bat_dau = Column(Date)
     ngay_ket_thuc = Column(Date, comment="Dự kiến")
     chu_dau_tu = Column(String(255), comment="Chủ đầu tư")
+    map_url = Column(String(500), comment="Link Google Maps")
 
     # Relationships
     mui_thi_congs = relationship("MuiThiCong", back_populates="cong_truong", cascade="all, delete-orphan")

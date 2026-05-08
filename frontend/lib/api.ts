@@ -49,6 +49,8 @@ export const api = {
   getCongTruong: (id: string) => fetchAPI<CongTruong>(`/api/v1/cong-truong/${id}`),
   createCongTruong: (data: Partial<CongTruong>) =>
     fetchAPI<CongTruong>('/api/v1/cong-truong', { method: 'POST', body: JSON.stringify(data) }),
+  updateCongTruong: (id: string, data: Partial<CongTruong>) =>
+    fetchAPI<CongTruong>(`/api/v1/cong-truong/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCongTruong: (id: string) =>
     fetchAPI<void>(`/api/v1/cong-truong/${id}`, { method: 'DELETE' }),
 

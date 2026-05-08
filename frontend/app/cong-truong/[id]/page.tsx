@@ -430,7 +430,16 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h2>{site.ten_ct}</h2>
           </div>
-          <p style={{ marginTop: 4 }}>📍 {site.dia_chi} | 🏢 {site.chu_dau_tu}</p>
+          <p style={{ marginTop: 4 }}>
+            {site.map_url ? (
+              <a href={site.map_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} title="Xem trên Google Maps">
+                📍 {site.dia_chi}
+              </a>
+            ) : (
+              `📍 ${site.dia_chi}`
+            )}
+            {` | 🏢 ${site.chu_dau_tu}`}
+          </p>
         </div>
 
         <div className="tabs" style={{ flexShrink: 0 }}>

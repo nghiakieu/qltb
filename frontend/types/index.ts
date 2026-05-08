@@ -9,6 +9,7 @@ export interface CongTruong {
   ngay_bat_dau?: string;
   ngay_ket_thuc?: string;
   chu_dau_tu?: string;
+  map_url?: string;
   created_at?: string;
   updated_at?: string;
   mui_thi_congs?: MuiThiCong[];
