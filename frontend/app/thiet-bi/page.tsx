@@ -203,7 +203,7 @@ function ThietBiContent() {
           return {
             ten_tb: row.ten_tb || row['Tên thiết bị'],
             ma_tb: row.ma_tb || row['Mã TB'],
-            loai: matchedType?.id || 'KHAC',
+            loai: (matchedType?.id || 'KHAC') as LoaiThietBi,
             bien_so: (row.bien_so || row['Biển số'] || '').toString(),
             nam_sx: row.nam_sx || row['Năm sản xuất'] ? parseInt(row.nam_sx || row['Năm sản xuất']) : undefined,
             hang_sx: row.hang_sx || row['Hãng sản xuất'],
