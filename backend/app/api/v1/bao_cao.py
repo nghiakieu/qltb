@@ -174,8 +174,3 @@ def get_time_series_report(
             tong_nhien_lieu=float(s.tong_nhien_lieu) if s.tong_nhien_lieu else 0.0
         ) for s in stats
     ]
-
-    return report
-    
-    # Placeholder for Excel if needed in future, currently handled in frontend.
-    pass
