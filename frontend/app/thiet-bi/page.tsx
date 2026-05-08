@@ -209,7 +209,7 @@ function ThietBiContent() {
             hang_sx: row.hang_sx || row['Hãng sản xuất'],
             cong_suat_gio_max: row.cong_suat_gio_max || row['Giờ max'] ? parseFloat(row.cong_suat_gio_max || row['Giờ max']) : undefined,
             hinh_anh: hinh_anh,
-            trang_thai: 'CHO'
+            trang_thai: 'CHO' as TrangThaiThietBi
           };
         });
 
