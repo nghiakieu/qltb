@@ -198,7 +198,7 @@ function ThietBiContent() {
           const loaiValue = (row.loai || row['Loại'] || '').toString().trim();
           // Auto-map image based on type
           const matchedType = types.find(t => t.id === loaiValue || t.name === loaiValue);
-          const hinhAnh = matchedType?.isImage ? matchedType.iconValue : '/icons/equipment/may_xuc_banh_xich.png';
+          const hinh_anh = matchedType?.isImage ? matchedType.iconValue : '/icons/equipment/may_xuc_banh_xich.png';
 
           return {
             ten_tb: row.ten_tb || row['Tên thiết bị'],
@@ -511,7 +511,7 @@ function ThietBiContent() {
         </div>
       )}
 
-      {/* Upload CSV Modal */}
+      {/* Upload Excel Modal */}
       {showUpload && (
         <div className="modal-overlay" onClick={() => { setShowUpload(false); setUploadResult(null); }}>
           <div className="modal" onClick={e => e.stopPropagation()}>

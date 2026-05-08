@@ -1,8 +1,6 @@
 """ThietBi (Equipment) CRUD API with state transitions + Excel upload."""
 
 from typing import List, Optional
-import csv
-import io
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 
@@ -135,50 +133,6 @@ def create_thiet_bi(data: ThietBiCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(tb)
     return tb
-
-
-@router.post("/upload-csv", status_code=201)
-async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload equipment from CSV/Excel-exported CSV file.
-
-    Expected columns: ten_tb, loai, bien_so, nam_sx, hang_sx, cong_suat_gio_max
-    """
-    if not file.filename or not (file.filename.endswith('.csv') or file.filename.endswith('.txt')):
-        raise HTTPException(status_code=400, detail="Only CSV files are supported")
-
-    content = await file.read()
-    text = content.decode('utf-8-sig')  # Handle BOM from Excel
-    reader = csv.DictReader(io.StringIO(text))
-
-    created = []
-    errors = []
-    for i, row in enumerate(reader, start=2):
-        try:
-            ten_tb = row.get('ten_tb', '').strip()
-            loai = row.get('loai', '').strip()
-            if not ten_tb or not loai:
-                errors.append(f"Row {i}: Missing ten_tb or loai")
-                continue
-
-            tb = ThietBi(
-                id=generate_uuid(),
-                ten_tb=ten_tb,
-                loai=loai,
-                bien_so=row.get('bien_so', '').strip() or None,
-                ma_tb=get_next_ma_tb(db),
-                nam_sx=int(row['nam_sx']) if row.get('nam_sx', '').strip() else None,
-                hang_sx=row.get('hang_sx', '').strip() or None,
-                cong_suat_gio_max=float(row['cong_suat_gio_max']) if row.get('cong_suat_gio_max', '').strip() else None,
-                trang_thai='CHO',
-            )
-            db.add(tb)
-            db.flush() # Ensure ma_tb sequence is updated for next item in loop
-            created.append(ten_tb)
-        except Exception as e:
-            errors.append(f"Row {i}: {str(e)}")
-
-    db.commit()
-    return {"created": len(created), "errors": errors, "items": created}
 
 
 @router.post("/batch", status_code=201)

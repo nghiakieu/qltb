@@ -96,13 +96,6 @@ export const api = {
   },
   changeTrangThaiThietBi: (tbId: string, trangThaiMoi: string, ghiChu?: string) =>
     fetchAPI<ThietBi>(`/api/v1/thiet-bi/${tbId}/trang-thai?trang_thai_moi=${trangThaiMoi}${ghiChu ? `&ghi_chu=${encodeURIComponent(ghiChu)}` : ''}`, { method: 'PATCH' }),
-  uploadCSV: async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch(`${API_BASE}/api/v1/thiet-bi/upload-csv`, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
-  },
   batchCreateThietBi: (data: Partial<ThietBi>[]) =>
     fetchAPI<{created: number}>('/api/v1/thiet-bi/batch', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -187,15 +180,6 @@ export const api = {
     if (params?.mui_id) searchParams.set('mui_id', params.mui_id);
     const qs = searchParams.toString();
     return fetchAPI<any[]>(`/api/v1/bao-cao/theo-thoi-gian${qs ? '?' + qs : ''}`);
-  },
-  exportReportUrl: (params?: { tu_ngay?: string; den_ngay?: string; cong_truong_id?: string; mui_id?: string }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.tu_ngay) searchParams.set('tu_ngay', params.tu_ngay);
-    if (params?.den_ngay) searchParams.set('den_ngay', params.den_ngay);
-    if (params?.cong_truong_id) searchParams.set('cong_truong_id', params.cong_truong_id);
-    if (params?.mui_id) searchParams.set('mui_id', params.mui_id);
-    const qs = searchParams.toString();
-    return `${API_BASE}/api/v1/bao-cao/export${qs ? '?' + qs : ''}`;
   },
 };
 

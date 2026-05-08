@@ -175,43 +175,7 @@ def get_time_series_report(
         ) for s in stats
     ]
 
-@router.get("/export")
-def export_report(
-    tu_ngay: Optional[date] = Query(None),
-    den_ngay: Optional[date] = Query(None),
-    cong_truong_id: Optional[str] = Query(None),
-    mui_id: Optional[str] = Query(None),
-    db: Session = Depends(get_db),
-    scope: dict = Depends(get_scope_filter)
-):
-    """Export report as CSV."""
-    from fastapi.responses import StreamingResponse
-    import io
-    import csv
+    return report
     
-    data = get_aggregated_report(tu_ngay, den_ngay, cong_truong_id, mui_id, db, scope)
-    
-    output = io.StringIO()
-    # Add BOM for Excel
-    output.write('\ufeff')
-    
-    writer = csv.writer(output)
-    writer.writerow([
-        "Tên thiết bị", "Mã thiết bị", "Loại", "Biển số", 
-        "Tổng giờ máy", "Tổng nhiên liệu (L)", "Số ca làm việc",
-        "Mũi hiện tại", "Công trường hiện tại"
-    ])
-    
-    for item in data:
-        writer.writerow([
-            item.ten_tb, item.ma_tb, item.loai, item.bien_so or "",
-            item.tong_gio, item.tong_nhien_lieu, item.so_ca,
-            item.mui_hien_tai, item.ct_hien_tai
-        ])
-        
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=bao_cao_thiet_bi_{date.today()}.csv"}
-    )
+    # Placeholder for Excel if needed in future, currently handled in frontend.
+    pass
