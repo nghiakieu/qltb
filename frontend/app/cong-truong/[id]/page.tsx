@@ -187,17 +187,15 @@ export default function CongTruongDetailPage({ params }: { params: Promise<{ id:
   };
 
   const handleDeleteMui = async (muiId: string, name: string) => {
-    if (!confirm(`Xóa mũi "${name}"? Thiết bị sẽ chuyển về Chưa phân bổ.`)) return;
+    if (!confirm(`Xóa mũi "${name}"? Thiết bị thuộc mũi này sẽ chuyển về trạng thái "Chưa phân bổ".`)) return;
     try {
-      // Unassign all equipment first
-      const tbInMui = allTb.filter(tb => tb.mui_id === muiId);
-      for (const tb of tbInMui) {
-        await api.phanBoThietBi(tb.id, null, ctId);
-      }
+      setLoading(true);
       await api.deleteMuiThiCong(muiId);
       refreshAll();
     } catch (err) {
-      alert('Lỗi: ' + (err as Error).message);
+      alert('Lỗi khi xóa mũi thi công: ' + (err as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
   

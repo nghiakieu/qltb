@@ -165,16 +165,26 @@ function ThietBiContent() {
     }
   };
 
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Xóa thiết bị "${name}"?`)) return;
+    
+    setIsDeleting(id);
     const oldTb = [...equipment];
     mutateTb(equipment.filter(e => e.id !== id), false);
+    
     try {
       await api.deleteThietBi(id);
       mutateTb();
-    } catch (err) {
+      // Thông báo thành công nhẹ nhàng hơn alert nếu cần, nhưng alert là đủ cho MVP
+    } catch (err: any) {
       mutateTb(oldTb, false);
-      alert('Lỗi: ' + (err as Error).message);
+      const msg = err.message || 'Lỗi không xác định';
+      alert('Không thể xóa thiết bị: ' + msg);
+      console.error('Delete error:', err);
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -195,19 +205,36 @@ function ThietBiContent() {
         }
 
         const itemsToCreate = json.map(row => {
-          const loaiValue = (row.loai || row['Loại'] || '').toString().trim();
-          // Auto-map image based on type
-          const matchedType = types.find(t => t.id === loaiValue || t.name === loaiValue);
+          // Chuẩn hóa key (hỗ trợ cả tiếng Việt và tiếng Anh, không phân biệt hoa thường)
+          const getVal = (keys: string[]) => {
+            const foundKey = Object.keys(row).find(k => keys.includes(k.toLowerCase().trim()));
+            return foundKey ? row[foundKey] : undefined;
+          };
+
+          const ten_tb = getVal(['ten_tb', 'tên thiết bị', 'tên', 'name']);
+          const loaiValue = (getVal(['loai', 'loại', 'type']) || '').toString().trim();
+          const ma_tb = getVal(['ma_tb', 'mã tb', 'mã', 'code']);
+          const bien_so = (getVal(['bien_so', 'biển số', 'plate']) || '').toString();
+          const hang_sx = getVal(['hang_sx', 'hãng sản xuất', 'hãng', 'brand']);
+          const nam_sx_val = getVal(['nam_sx', 'năm sản xuất', 'năm', 'year']);
+          const gio_max_val = getVal(['cong_suat_gio_max', 'giờ max', 'giờ tối đa', 'max hours']);
+
+          // Tìm loại thiết bị phù hợp để lấy hinh_anh tự động
+          const matchedType = types.find(t => 
+            t.id.toLowerCase() === loaiValue.toLowerCase() || 
+            t.name.toLowerCase() === loaiValue.toLowerCase()
+          );
+          
           const hinh_anh = matchedType?.isImage ? matchedType.iconValue : '/icons/equipment/may_xuc_banh_xich.png';
 
           return {
-            ten_tb: row.ten_tb || row['Tên thiết bị'],
-            ma_tb: row.ma_tb || row['Mã TB'],
+            ten_tb: ten_tb || 'Thiết bị không tên',
+            ma_tb: ma_tb,
             loai: (matchedType?.id || 'KHAC') as LoaiThietBi,
-            bien_so: (row.bien_so || row['Biển số'] || '').toString(),
-            nam_sx: row.nam_sx || row['Năm sản xuất'] ? parseInt(row.nam_sx || row['Năm sản xuất']) : undefined,
-            hang_sx: row.hang_sx || row['Hãng sản xuất'],
-            cong_suat_gio_max: row.cong_suat_gio_max || row['Giờ max'] ? parseFloat(row.cong_suat_gio_max || row['Giờ max']) : undefined,
+            bien_so: bien_so,
+            nam_sx: nam_sx_val ? parseInt(nam_sx_val.toString()) : undefined,
+            hang_sx: hang_sx,
+            cong_suat_gio_max: gio_max_val ? parseFloat(gio_max_val.toString()) : undefined,
             hinh_anh: hinh_anh,
             trang_thai: 'CHO' as TrangThaiThietBi
           };
@@ -227,20 +254,15 @@ function ThietBiContent() {
   };
 
   const handleDownload = () => {
-    // Luôn ưu tiên xuất dữ liệu đang hiển thị (sau khi lọc)
-    const dataToExport = filtered;
+    console.log('Exporting equipment to Excel...', { count: filtered.length });
     
-    console.log('Exporting data:', dataToExport);
-
-    if (!dataToExport || dataToExport.length === 0) {
-      alert('Không có dữ liệu thiết bị phù hợp để tải xuống. Hiện tại danh sách đang có ' + equipment.length + ' thiết bị tổng cộng.');
+    if (filtered.length === 0) {
+      alert('Không có dữ liệu để tải xuống.');
       return;
     }
 
     try {
-      console.log('Preparing Excel rows for ' + dataToExport.length + ' items');
-      
-      // Sử dụng aoa_to_sheet (Array of Arrays) để đảm bảo dữ liệu được ghi chính xác nhất
+      // 1. Prepare Headers
       const headers = [
         'STT', 
         'Mã TB', 
@@ -252,58 +274,69 @@ function ThietBiContent() {
         'Trạng thái', 
         'Công trường', 
         'Mũi thi công', 
-        'Giờ max'
+        'Giờ máy tối đa/ngày'
       ];
 
-      const rows = dataToExport.map((tb, index) => {
-        try {
-          return [
-            index + 1,
-            tb.ma_tb || '',
-            tb.ten_tb || '',
-            getLabel(tb.loai) || '',
-            tb.bien_so || '',
-            tb.hang_sx || '',
-            tb.nam_sx || '',
-            TRANG_THAI_TB_LABEL[tb.trang_thai as keyof typeof TRANG_THAI_TB_LABEL] || tb.trang_thai || '',
-            getSiteName(tb.mui_id) || '',
-            getMuiName(tb.mui_id) || '',
-            tb.cong_suat_gio_max || ''
-          ];
-        } catch (e) {
-          console.error('Error mapping row:', tb, e);
-          return [index + 1, 'Error', 'Error', '', '', '', '', '', '', '', ''];
-        }
+      // 2. Prepare Data
+      const rows = filtered.map((tb, index) => {
+        const trangThaiText = TRANG_THAI_TB_LABEL[tb.trang_thai] || tb.trang_thai;
+        const loaiText = getLabel(tb.loai);
+        
+        const mui = tb.mui_id ? muiMap.get(tb.mui_id) : null;
+        const tenMui = mui?.ten_mui || '-';
+        const siteId = mui?.cong_truong_id || tb.cong_truong_id;
+        const tenCT = siteId ? siteMap.get(siteId)?.ten_ct || '-' : '-';
+
+        return [
+          index + 1,
+          tb.ma_tb || '-',
+          tb.ten_tb || '',
+          loaiText,
+          tb.bien_so || '-',
+          tb.hang_sx || '-',
+          tb.nam_sx || '-',
+          trangThaiText,
+          tenCT,
+          tenMui,
+          tb.cong_suat_gio_max ? `${tb.cong_suat_gio_max}h` : '-'
+        ];
       });
 
-      console.log('AOA data prepared:', [headers, ...rows]);
-
+      // 3. Create Sheet
       const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      
+      // Auto-width for columns
+      const colWidths = headers.map((_, i) => {
+        const maxLen = Math.max(
+          headers[i].length,
+          ...rows.map(row => row[i] ? row[i].toString().length : 0)
+        );
+        return { wch: Math.min(maxLen + 2, 50) };
+      });
+      worksheet['!cols'] = colWidths;
+
+      // 4. Create Workbook and Export
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach");
-
-      // Cấu hình độ rộng cột cơ bản
-      const wscols = [
-        {wch: 5},  // STT
-        {wch: 15}, // Mã TB
-        {wch: 30}, // Tên
-        {wch: 15}, // Loại
-        {wch: 15}, // Biển số
-        {wch: 15}, // Hãng
-        {wch: 10}, // Năm
-        {wch: 15}, // Trạng thái
-        {wch: 25}, // Công trường
-        {wch: 25}, // Mũi
-        {wch: 10}  // Giờ max
-      ];
-      worksheet['!cols'] = wscols;
-
-      console.log('Writing file...');
-      XLSX.writeFile(workbook, "danh_sach_thiet_bi.xlsx");
-      console.log('Write complete.');
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach Thiet bi");
+      
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      // Use array buffer for more reliable download in some browsers
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `danh_sach_thiet_bi_${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log('Export successful');
     } catch (err) {
-      console.error('Export error details:', err);
-      alert('Có lỗi xảy ra khi xuất file Excel: ' + (err as Error).message);
+      console.error('Excel Export Error:', err);
+      alert('Không thể xuất file Excel: ' + (err as Error).message);
     }
   };
 

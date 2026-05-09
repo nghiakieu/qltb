@@ -52,4 +52,6 @@ class ThietBi(Base, TimestampMixin):
     mui_thi_cong = relationship("MuiThiCong", back_populates="thiet_bis")
     cong_truong = relationship("CongTruong", back_populates="thiet_bis")
     lai_xe = relationship("NhanSu", back_populates="thiet_bis", foreign_keys=[lai_xe_id])
-    nhat_ky_su_kiens = relationship("NhatKySuKien", back_populates="thiet_bi")
+    nhat_ky_su_kiens = relationship("NhatKySuKien", back_populates="thiet_bi", cascade="all, delete-orphan")
+    ca_lam_viecs = relationship("CaLamViec", back_populates="thiet_bi", cascade="all, delete-orphan")
+    yeu_cau_dieu_phois = relationship("YeuCauDieuPhoi", back_populates="thiet_bi", cascade="all, delete-orphan")

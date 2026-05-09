@@ -21,7 +21,7 @@ class YeuCauDieuPhoi(Base, TimestampMixin):
     den_mui_id = Column(
         String(36),
         ForeignKey("mui_thi_cong.id", ondelete="SET NULL"),
-        nullable=False,
+        nullable=True,
         comment="Mũi đích",
     )
     thiet_bi_id = Column(
@@ -50,6 +50,6 @@ class YeuCauDieuPhoi(Base, TimestampMixin):
     # Relationships
     tu_mui = relationship("MuiThiCong", foreign_keys=[tu_mui_id])
     den_mui = relationship("MuiThiCong", foreign_keys=[den_mui_id])
-    thiet_bi = relationship("ThietBi")
+    thiet_bi = relationship("ThietBi", back_populates="yeu_cau_dieu_phois")
     nguoi_yeu_cau = relationship("NhanSu", foreign_keys=[nguoi_yeu_cau_id])
     nguoi_duyet = relationship("NhanSu", foreign_keys=[nguoi_duyet_id])

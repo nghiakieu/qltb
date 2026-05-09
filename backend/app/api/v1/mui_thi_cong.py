@@ -80,5 +80,33 @@ def delete_mui_thi_cong(mui_id: str, db: Session = Depends(get_db)):
     mui = db.query(MuiThiCong).filter(MuiThiCong.id == mui_id).first()
     if not mui:
         raise HTTPException(status_code=404, detail="Mũi thi công không tồn tại")
-    db.delete(mui)
-    db.commit()
+    
+    try:
+        # Manually unassign in related tables to ensure consistency
+        from app.models.thiet_bi import ThietBi
+        from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
+        from app.models.nhat_ky_su_kien import NhatKySuKien
+        from app.models.ca_lam_viec import CaLamViec
+        
+        db.query(ThietBi).filter(ThietBi.mui_id == mui_id).update({ThietBi.mui_id: None})
+        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.tu_mui_id == mui_id).update({YeuCauDieuPhoi.tu_mui_id: None})
+        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.den_mui_id == mui_id).update({YeuCauDieuPhoi.den_mui_id: None})
+        db.query(NhatKySuKien).filter(NhatKySuKien.mui_id == mui_id).update({NhatKySuKien.mui_id: None})
+        db.query(NhatKySuKien).filter(NhatKySuKien.tu_mui_id == mui_id).update({NhatKySuKien.tu_mui_id: None})
+        db.query(NhatKySuKien).filter(NhatKySuKien.den_mui_id == mui_id).update({NhatKySuKien.den_mui_id: None})
+        db.query(CaLamViec).filter(CaLamViec.mui_id == mui_id).update({CaLamViec.mui_id: None})
+        
+        # Cleanup Account Scopes (TaiKhoanPhamVi)
+        from app.models.tai_khoan import TaiKhoanPhamVi
+        db.query(TaiKhoanPhamVi).filter(TaiKhoanPhamVi.mui_id == mui_id).delete(synchronize_session=False)
+        
+        db.delete(mui)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting work front: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Không thể xóa mũi thi công do có dữ liệu liên quan: {str(e)}"
+        )
+    return None

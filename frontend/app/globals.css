@@ -347,7 +347,8 @@ a {
 /* Data Table */
 .data-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Required for perfect sticky headers */
+  border-spacing: 0;
   font-size: 14px;
 }
 
@@ -362,7 +363,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
-  box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); /* Subtle shadow to distinguish header */
+  box-shadow: inset 0 -1px 0 var(--border-color); /* Maintain border visibility with sticky */
 }
 
 .data-table td,
@@ -1153,11 +1154,12 @@ a {
 .table-wrapper {
   overflow: auto;
   max-width: 100%;
-  max-height: 75vh; /* Standard height for sticky tables */
+  max-height: 70vh; /* Slightly reduced to ensure it fits common screens */
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-lg);
   position: relative;
   background: var(--bg-card);
+  border: 1px solid var(--border-color);
 }
 
 .scroll-y {

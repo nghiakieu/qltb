@@ -28,6 +28,6 @@ class CaLamViec(Base, TimestampMixin):
     ghi_chu = Column(Text, nullable=True)
     
     # Relationships
-    thiet_bi = relationship("ThietBi")
+    thiet_bi = relationship("ThietBi", back_populates="ca_lam_viecs")
     nhan_su = relationship("NhanSu")
     mui_thi_cong = relationship("MuiThiCong")

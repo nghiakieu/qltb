@@ -70,5 +70,34 @@ def delete_nhan_su(ns_id: str, db: Session = Depends(get_db)):
     ns = db.query(NhanSu).filter(NhanSu.id == ns_id).first()
     if not ns:
         raise HTTPException(status_code=404, detail="Nhân sự không tồn tại")
-    db.delete(ns)
-    db.commit()
+    
+    # Manually unassign from equipment (as operator)
+    try:
+        from app.models.thiet_bi import ThietBi
+        db.query(ThietBi).filter(ThietBi.lai_xe_id == ns_id).update({ThietBi.lai_xe_id: None})
+        
+        # Handle subordinates (set their manager to NULL)
+        db.query(NhanSu).filter(NhanSu.quan_ly_id == ns_id).update({NhanSu.quan_ly_id: None})
+        
+        # Manually unassign in other tables
+        from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
+        from app.models.nhat_ky_su_kien import NhatKySuKien
+        from app.models.ca_lam_viec import CaLamViec
+        from app.models.tai_khoan import TaiKhoan
+        
+        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.nguoi_yeu_cau_id == ns_id).update({YeuCauDieuPhoi.nguoi_yeu_cau_id: None})
+        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.nguoi_duyet_id == ns_id).update({YeuCauDieuPhoi.nguoi_duyet_id: None})
+        db.query(NhatKySuKien).filter(NhatKySuKien.nguoi_thuc_hien_id == ns_id).update({NhatKySuKien.nguoi_thuc_hien_id: None})
+        db.query(CaLamViec).filter(CaLamViec.nhan_su_id == ns_id).update({CaLamViec.nhan_su_id: None})
+        db.query(TaiKhoan).filter(TaiKhoan.nhan_su_id == ns_id).update({TaiKhoan.nhan_su_id: None})
+        
+        db.delete(ns)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting staff: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Không thể xóa nhân sự do có dữ liệu liên quan: {str(e)}"
+        )
+    return None

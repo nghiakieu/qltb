@@ -28,19 +28,30 @@ interface AuthContextValue extends AuthState {
 // ── Storage helpers (memory + sessionStorage) ──────────────────────────────
 const TOKEN_KEY = 'qltb_access_token';
 const REFRESH_KEY = 'qltb_refresh_token';
+const USER_KEY = 'qltb_user_info';
 
 const saveTokens = (access: string, refresh: string) => {
   sessionStorage.setItem(TOKEN_KEY, access);
   sessionStorage.setItem(REFRESH_KEY, refresh);
 };
 
-const clearTokens = () => {
+const saveUserInfo = (user: UserInfo) => {
+  sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+};
+
+const clearSession = () => {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_KEY);
+  sessionStorage.removeItem(USER_KEY);
 };
 
 const getStoredToken = () => sessionStorage.getItem(TOKEN_KEY);
 const getStoredRefresh = () => sessionStorage.getItem(REFRESH_KEY);
+const getStoredUser = (): UserInfo | null => {
+  const s = sessionStorage.getItem(USER_KEY);
+  if (!s) return null;
+  try { return JSON.parse(s); } catch { return null; }
+};
 
 // ── API helpers (no circular dep with lib/api.ts) ──────────────────────────
 const BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -94,38 +105,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Try to restore session on mount
   useEffect(() => {
     const restore = async () => {
+      console.log("[Auth] Restoring session...");
       const token = getStoredToken();
       const refresh = getStoredRefresh();
+      const cachedUser = getStoredUser();
+
+      // Synchronously set cached user if available to prevent UI flicker
+      if (token && cachedUser) {
+        console.log("[Auth] Found cached user:", cachedUser.username);
+        setState(s => ({ ...s, user: cachedUser, accessToken: token, isAuthenticated: true }));
+      }
 
       if (!token && !refresh) {
+        console.log("[Auth] No tokens found.");
         setState(s => ({ ...s, isLoading: false }));
         return;
       }
 
       try {
-        // Try current access token first
+        // Verify current token
         if (token) {
           const user = await apiMe(token);
+          console.log("[Auth] Token verified for:", user.username);
+          saveUserInfo(user);
           setState({ user, accessToken: token, isLoading: false, isAuthenticated: true });
           return;
         }
-      } catch {
-        // Access token expired — try refresh
+      } catch (err) {
+        console.warn("[Auth] Token verification failed:", (err as Error).message);
       }
 
       try {
         if (refresh) {
+          console.log("[Auth] Attempting refresh...");
           const tokens = await apiRefresh(refresh);
           saveTokens(tokens.access_token, tokens.refresh_token);
           const user = await apiMe(tokens.access_token);
+          console.log("[Auth] Refresh successful for:", user.username);
+          saveUserInfo(user);
           setState({ user, accessToken: tokens.access_token, isLoading: false, isAuthenticated: true });
           return;
         }
-      } catch {
-        clearTokens();
+      } catch (err) {
+        console.error("[Auth] Refresh failed:", (err as Error).message);
+        clearSession();
       }
 
-      setState(s => ({ ...s, isLoading: false }));
+      setState(s => ({ ...s, isLoading: false, isAuthenticated: false, user: null }));
     };
 
     restore();
@@ -135,11 +161,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const tokens = await apiLogin(username, password);
     saveTokens(tokens.access_token, tokens.refresh_token);
     const user = await apiMe(tokens.access_token);
+    saveUserInfo(user);
     setState({ user, accessToken: tokens.access_token, isLoading: false, isAuthenticated: true });
   }, []);
 
   const logout = useCallback(() => {
-    clearTokens();
+    console.log("[Auth] Logging out...");
+    clearSession();
     setState({ user: null, accessToken: null, isLoading: false, isAuthenticated: false });
   }, []);
 

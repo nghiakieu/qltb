@@ -279,14 +279,6 @@ def phan_bo_thiet_bi(
     return tb
 
 
-@router.delete("/{tb_id}", status_code=204)
-def delete_thiet_bi(tb_id: str, db: Session = Depends(get_db)):
-    """Delete an equipment entry."""
-    tb = db.query(ThietBi).filter(ThietBi.id == tb_id).first()
-    if not tb:
-        raise HTTPException(status_code=404, detail="Equipment not found")
-    db.delete(tb)
-    db.commit()
 
 
 # NOTE: /logs/all and /logs/{id} MUST be declared before /{tb_id} in router
@@ -399,3 +391,38 @@ def get_equipment_history(tb_id: str, db: Session = Depends(get_db)):
         "shifts": shifts,
         "requests": requests
     }
+
+
+@router.delete("/{tb_id}", status_code=204)
+def delete_thiet_bi(tb_id: str, db: Session = Depends(get_db)):
+    """Delete equipment and its history."""
+    tb = db.query(ThietBi).filter(ThietBi.id == tb_id).first()
+    if not tb:
+        raise HTTPException(status_code=404, detail="Thiết bị không tồn tại")
+    
+    try:
+        # Relationships with cascade="all, delete-orphan" in models might not catch everything
+        # especially if there are other models referencing ThietBi that we haven't checked.
+        # We also want to manually clear associations if they are not meant to be deleted.
+        
+        from app.models.nhat_ky_su_kien import NhatKySuKien
+        from app.models.ca_lam_viec import CaLamViec
+        from app.models.yeu_cau_dieu_phoi import YeuCauDieuPhoi
+
+        # If these should be deleted with the equipment:
+        db.query(NhatKySuKien).filter(NhatKySuKien.thiet_bi_id == tb_id).delete()
+        db.query(CaLamViec).filter(CaLamViec.thiet_bi_id == tb_id).delete()
+        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.thiet_bi_id == tb_id).delete()
+        
+        db.delete(tb)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting equipment: {str(e)}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Không thể xóa thiết bị do có dữ liệu liên quan: {str(e)}"
+        )
+    return None
+
+

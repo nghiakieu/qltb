@@ -24,6 +24,7 @@ async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('qltb_access_token');
         sessionStorage.removeItem('qltb_refresh_token');
+        sessionStorage.removeItem('qltb_user_info');
         window.location.href = '/login';
       }
     }
