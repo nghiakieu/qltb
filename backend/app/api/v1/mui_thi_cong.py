@@ -98,7 +98,7 @@ def delete_mui_thi_cong(mui_id: str, db: Session = Depends(get_db)):
         
         # Cleanup Account Scopes (TaiKhoanPhamVi)
         from app.models.tai_khoan import TaiKhoanPhamVi
-        db.query(TaiKhoanPhamVi).filter(TaiKhoanPhamVi.mui_id == mui_id).delete(synchronize_session=False)
+        db.query(TaiKhoanPhamVi).filter(TaiKhoanPhamVi.mui_thi_cong_id == mui_id).delete(synchronize_session=False)
         
         db.delete(mui)
         db.commit()

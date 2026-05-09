@@ -91,7 +91,6 @@ def delete_cong_truong(ct_id: str, db: Session = Depends(get_db)):
         db.query(ThietBi).filter(ThietBi.cong_truong_id == ct_id).update({ThietBi.cong_truong_id: None, ThietBi.mui_id: None})
         
         # Cleanup logs
-        db.query(NhatKySuKien).filter(NhatKySuKien.cong_truong_id == ct_id).update({NhatKySuKien.cong_truong_id: None})
         db.query(NhatKySuKien).filter(NhatKySuKien.tu_ct_id == ct_id).update({NhatKySuKien.tu_ct_id: None})
         db.query(NhatKySuKien).filter(NhatKySuKien.den_ct_id == ct_id).update({NhatKySuKien.den_ct_id: None})
         
