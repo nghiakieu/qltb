@@ -94,12 +94,8 @@ def delete_cong_truong(ct_id: str, db: Session = Depends(get_db)):
         db.query(NhatKySuKien).filter(NhatKySuKien.tu_ct_id == ct_id).update({NhatKySuKien.tu_ct_id: None})
         db.query(NhatKySuKien).filter(NhatKySuKien.den_ct_id == ct_id).update({NhatKySuKien.den_ct_id: None})
         
-        # Cleanup dispatch requests
-        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.tu_ct_id == ct_id).update({YeuCauDieuPhoi.tu_ct_id: None})
-        db.query(YeuCauDieuPhoi).filter(YeuCauDieuPhoi.den_ct_id == ct_id).update({YeuCauDieuPhoi.den_ct_id: None})
-        
-        # Cleanup shifts
-        db.query(CaLamViec).filter(CaLamViec.cong_truong_id == ct_id).update({CaLamViec.cong_truong_id: None})
+        # Note: YeuCauDieuPhoi and CaLamViec reference MUI directly. 
+        # Since MUI are deleted via cascade, those references will be set to NULL automatically.
         
         # Clean up account scopes
         db.query(TaiKhoanPhamVi).filter(TaiKhoanPhamVi.cong_truong_id == ct_id).delete(synchronize_session=False)
